@@ -1,0 +1,28 @@
+﻿{
+  "name": "fff-non-ascii-guard",
+  "version": "0.1.0",
+  "description": "Pi extension that detects and renames non-ASCII filenames before fff-core can panic on UTF-8 byte boundaries.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "fff-core",
+    "filename",
+    "utf-8"
+  ],
+  "license": "MIT",
+  "author": "Keisu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eiei114/fff-non-ascii-guard.git"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  }
+}
