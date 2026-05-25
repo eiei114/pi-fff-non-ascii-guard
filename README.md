@@ -1,4 +1,4 @@
-﻿# fff-non-ascii-guard
+﻿# pi-fff-non-ascii-guard
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
 
@@ -23,13 +23,13 @@ byte index 65 is not a char boundary
 ## Install
 
 ```bash
-pi install git:github.com/eiei114/fff-non-ascii-guard
+pi install git:github.com/eiei114/pi-fff-non-ascii-guard
 ```
 
 For project-local install:
 
 ```bash
-pi install -l git:github.com/eiei114/fff-non-ascii-guard
+pi install -l git:github.com/eiei114/pi-fff-non-ascii-guard
 ```
 
 ## Tool
@@ -76,5 +76,6 @@ Both files were renamed to ASCII slugs:
 ```
 
 The immediate workaround was to rename the files manually. This extension codifies that workaround so future projects get an early warning before `fff-core` touches paths that may trigger the same UTF-8 boundary panic.
+
 
 
