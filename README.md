@@ -1,24 +1,37 @@
-﻿# pi-fff-non-ascii-guard
+# pi-fff-non-ascii-guard
+
+[![CI](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/ci.yml)
+[![Publish](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/publish.yml/badge.svg)](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/publish.yml)
+[![npm version](https://img.shields.io/npm/v/pi-fff-non-ascii-guard)](https://www.npmjs.com/package/pi-fff-non-ascii-guard)
+[![npm downloads](https://img.shields.io/npm/dw/pi-fff-non-ascii-guard)](https://www.npmjs.com/package/pi-fff-non-ascii-guard)
+[![License: MIT](https://img.shields.io/github/license/eiei114/pi-fff-non-ascii-guard)](https://github.com/eiei114/pi-fff-non-ascii-guard/blob/main/LICENSE)
+![Pi Package](https://img.shields.io/badge/Pi-Package-blue)
+[![Trusted Publishing](https://img.shields.io/badge/npm-provenance-yellow)](https://docs.npmjs.com/generating-provenance-statements)
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
 
+## What this is
+
+A Pi extension that detects and renames non-ASCII filenames before `fff-core` can panic on UTF-8 byte boundaries. It scans your workspace on session start, warns about problematic filenames, and provides a tool to safely rename them to ASCII slugs.
+
 ## Problem
 
-`fff-core` can panic when it slices UTF-8 paths at byte offsets that are not character boundaries, for example paths containing Japanese characters.
-
-Example:
+`fff-core` can panic when it slices UTF-8 paths at byte offsets that are not character boundaries — for example, paths containing Japanese characters:
 
 ```text
 thread '<unnamed>' panicked at crates\fff-core\src\constraints.rs:73:13:
 byte index 65 is not a char boundary
 ```
 
-## What this extension does
+This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 
-- Scans the current Pi workspace on `session_start`.
-- Warns when non-ASCII filenames are found.
-- Registers a `sanitize_filenames` tool that can preview or execute safe ASCII slug renames.
-- Skips noisy/internal folders such as `.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, and `node_modules`.
+## Features
+
+- **Session-start scan** — automatically detects non-ASCII filenames when a Pi session begins
+- **Warning notification** — alerts the LLM when problematic filenames are found
+- **`sanitize_filenames` tool** — preview or execute safe ASCII slug renames
+- **Smart exclusions** — skips `.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, and `node_modules`
+- **Collision detection** — refuses to auto-rename when two files would slug to the same name
 
 ## Install
 
@@ -32,50 +45,101 @@ For project-local install:
 pi install -l git:github.com/eiei114/pi-fff-non-ascii-guard
 ```
 
-## Tool
+## Quick start
 
-`sanitize_filenames`
+1. Install the extension (see [Install](#install)).
+2. Start a Pi session in a workspace that may contain non-ASCII filenames.
+3. If non-ASCII filenames are detected, Pi shows a warning with the file list.
+4. Ask the LLM to call `sanitize_filenames` with `dryRun: true` to preview, then `dryRun: false` to execute.
 
-Parameters:
+## Usage summary
+
+### `sanitize_filenames` tool
+
+| Parameter | Type    | Default | Description                     |
+|-----------|---------|---------|---------------------------------|
+| `dryRun`  | boolean | `true`  | Preview renames without executing |
+
+**Preview renames:**
 
 ```json
-{
-  "dryRun": true
-}
+{ "dryRun": true }
 ```
 
-- `dryRun: true` previews planned renames.
-- `dryRun: false` performs renames.
+**Execute renames:**
 
-## Notes
+```json
+{ "dryRun": false }
+```
 
-This does not patch `fff-core` itself. It prevents the known crash by keeping scanned filenames ASCII-safe.
-## Real incident that motivated this extension
+The tool returns a list of planned or completed renames. If two files would collide after slug conversion, the tool reports an error and asks you to resolve manually.
+
+## Package contents
+
+```
+pi-fff-non-ascii-guard/
+├── extensions/
+│   └── pi-fff-non-ascii-guard.ts   # Extension source
+├── .github/workflows/
+│   ├── auto-release.yml            # Auto-tag + release on merge to main
+│   ├── ci.yml                      # Validate on PR / push
+│   └── publish.yml                 # Publish to npm on tag or release
+├── CHANGELOG.md
+├── LICENSE                         # MIT
+├── package.json
+└── README.md
+```
+
+## Development
+
+Clone and validate:
+
+```bash
+git clone https://github.com/eiei114/pi-fff-non-ascii-guard.git
+cd pi-fff-non-ascii-guard
+npm run check   # validates package contents via npm pack --dry-run
+```
+
+## Release
+
+Releases are automated:
+
+1. Bump `version` in `package.json`.
+2. Merge to `main`.
+3. The **Auto Release** workflow tags `v<version>` and creates a GitHub release.
+4. The tag triggers the **Publish** workflow, which publishes to npm with provenance.
+
+## Security
+
+- No network requests.
+- No environment variables or secrets read.
+- Only renames files within the current Pi workspace directory.
+- Skips hidden and internal directories (`.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, `node_modules`).
+
+## Real incident
 
 This extension was created after Pi crashed while updating `.pi/monofold.yaml` in an Obsidian vault that contained Japanese PDF filenames.
 
-The observed error was:
+Observed error:
 
 ```text
 thread '<unnamed>' panicked at crates\fff-core\src\constraints.rs:73:13:
 byte index 65 is not a char boundary; it is inside 'イ' (bytes 63..66) of `2_Literature\2_Tools\Pi Coding Agent - 初心者向け比較ガイド - slides.pdf`
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ```
 
-A second non-ASCII PDF filename was also present:
-
-```text
-2_Literature/PKM/3倍Zettelkasten - AI支援による直列高速化.pdf
-```
-
-Both files were renamed to ASCII slugs:
+Both offending files were renamed to ASCII slugs:
 
 ```text
 2_Literature/2_Tools/pi-coding-agent-beginner-guide-slides.pdf
 2_Literature/PKM/3x-zettelkasten-ai-serial-acceleration.pdf
 ```
 
-The immediate workaround was to rename the files manually. This extension codifies that workaround so future projects get an early warning before `fff-core` touches paths that may trigger the same UTF-8 boundary panic.
+## Links
 
+- **Repository**: <https://github.com/eiei114/pi-fff-non-ascii-guard>
+- **npm**: <https://www.npmjs.com/package/pi-fff-non-ascii-guard>
+- **Issues**: <https://github.com/eiei114/pi-fff-non-ascii-guard/issues>
 
+## License
 
+[MIT](LICENSE) © Keisu
