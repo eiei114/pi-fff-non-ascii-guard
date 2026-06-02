@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
 
 jobs:
@@ -43,5 +44,13 @@ jobs:
           git tag "$TAG"
           git push origin "$TAG"
           gh release create "$TAG" --title "$TAG" --notes "$NOTES"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger publish workflow
+        if: steps.check.outputs.released == 'true'
+        run: |
+          TAG="${{ steps.check.outputs.tag }}"
+          gh workflow run publish.yml --ref "$TAG" -f ref="$TAG"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
