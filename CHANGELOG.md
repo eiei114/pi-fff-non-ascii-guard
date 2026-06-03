@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-06-03
+
+### Added
+
+- **fff tool gate**: blocks `find_files` and `fff_multi_grep` while non-ASCII paths exist (prevents fff-core panic instead of only warning).
+- **`list_non_ascii_paths` tool**: inspect files and directories with non-ASCII path segments.
+- **Full-path scan**: flags paths when any directory segment is non-ASCII, not only the filename.
+- **`before_agent_start` hint**: tells the model that fff search tools are blocked until paths are fixed.
+- **lib/** modules and smoke tests for scan, slug, and collision detection.
+
+### Changed
+
+- Session warning now states that fff tools are blocked until sanitize completes.
+- `sanitize_filenames` only renames files; non-ASCII directories are listed for manual rename.
+- Slug collisions get automatic `-2`, `-3`, … suffixes instead of aborting the rename batch.
+
+### Fixed
+
+- Detect non-ASCII segments in the workspace root (`cwd`), not only in `path.relative()` results.
+- `sanitize_filenames` skips ASCII-basename files that only sit under non-ASCII directories.
+- Rename planner avoids targets that already exist on disk (prevents accidental overwrites).
+
 ## [0.1.3] - 2026-06-02
 
 ### Fixed
