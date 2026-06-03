@@ -27,9 +27,11 @@ This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 
 ## Features
 
-- **Session-start scan** — automatically detects non-ASCII filenames when a Pi session begins
-- **Warning notification** — alerts the LLM when problematic filenames are found
-- **`sanitize_filenames` tool** — preview or execute safe ASCII slug renames
+- **Session-start scan** — automatically detects non-ASCII paths when a Pi session begins
+- **fff tool gate** — blocks `find_files` and `fff_multi_grep` while non-ASCII paths remain (prevents fff-core panic)
+- **Warning notification** — alerts the LLM when problematic paths are found
+- **`list_non_ascii_paths` tool** — list files and directories with non-ASCII path segments
+- **`sanitize_filenames` tool** — preview or execute safe ASCII slug renames for files
 - **Smart exclusions** — skips `.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, and `node_modules`
 - **Collision detection** — refuses to auto-rename when two files would slug to the same name
 
@@ -51,8 +53,15 @@ pi install -l git:github.com/eiei114/pi-fff-non-ascii-guard
 2. Start a Pi session in a workspace that may contain non-ASCII filenames.
 3. If non-ASCII filenames are detected, Pi shows a warning with the file list.
 4. Ask the LLM to call `sanitize_filenames` with `dryRun: true` to preview, then `dryRun: false` to execute.
+5. After paths are ASCII-safe, `find_files` / `fff_multi_grep` work again.
+
+While non-ASCII paths exist, Pi blocks fff search tools and returns a fix hint instead of crashing.
 
 ## Usage summary
+
+### `list_non_ascii_paths` tool
+
+Lists every file and directory whose relative path contains non-ASCII characters. No parameters.
 
 ### `sanitize_filenames` tool
 
@@ -79,7 +88,9 @@ The tool returns a list of planned or completed renames. If two files would coll
 ```
 pi-fff-non-ascii-guard/
 ├── extensions/
-│   └── pi-fff-non-ascii-guard.ts   # Extension source
+│   └── pi-fff-non-ascii-guard.ts   # Extension entry
+├── lib/                            # Scan, slug, rename-plan helpers
+├── tests/                          # Smoke tests
 ├── .github/workflows/
 │   ├── auto-release.yml            # Auto-tag + release on merge to main
 │   ├── ci.yml                      # Validate on PR / push
@@ -97,7 +108,8 @@ Clone and validate:
 ```bash
 git clone https://github.com/eiei114/pi-fff-non-ascii-guard.git
 cd pi-fff-non-ascii-guard
-npm run check   # validates package contents via npm pack --dry-run
+npm test        # smoke tests
+npm run check   # tests + npm pack --dry-run
 ```
 
 ## Release
@@ -116,9 +128,19 @@ Releases are automated:
 - Only renames files within the current Pi workspace directory.
 - Skips hidden and internal directories (`.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, `node_modules`).
 
-## Real incident
+## Real incidents
 
 This extension was created after Pi crashed while updating `.pi/monofold.yaml` in an Obsidian vault that contained Japanese PDF filenames.
+
+Another crash while editing `AGENTS.md` in a Roblox repo with Google Apps Script files:
+
+```text
+thread '<unnamed>' panicked at crates\fff-core\src\constraints.rs:73:13:
+byte index 44 is not a char boundary; it is inside 'な' (bytes 43..46) of
+`scripts\SpreadsheetToJson_wrapあり・nullなし.gs`
+```
+
+The v0.1.4 gate blocks `find_files` / `fff_multi_grep` until those paths are renamed.
 
 Observed error:
 
