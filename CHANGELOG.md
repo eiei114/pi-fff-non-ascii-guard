@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `sanitize_filenames` only renames files; non-ASCII directories are listed for manual rename.
 - Slug collisions get automatic `-2`, `-3`, … suffixes instead of aborting the rename batch.
 
+### Fixed
+
+- Detect non-ASCII segments in the workspace root (`cwd`), not only in `path.relative()` results.
+- `sanitize_filenames` skips ASCII-basename files that only sit under non-ASCII directories.
+- Rename planner avoids targets that already exist on disk (prevents accidental overwrites).
+
 ## [0.1.3] - 2026-06-02
 
 ### Fixed

@@ -33,7 +33,7 @@ This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 - **`list_non_ascii_paths` tool** — list files and directories with non-ASCII path segments
 - **`sanitize_filenames` tool** — preview or execute safe ASCII slug renames for files
 - **Smart exclusions** — skips `.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, and `node_modules`
-- **Collision detection** — refuses to auto-rename when two files would slug to the same name
+- **Collision disambiguation** — when two files slug to the same name, appends `-2`, `-3`, … and continues
 
 ## Install
 
@@ -81,7 +81,7 @@ Lists every file and directory whose relative path contains non-ASCII characters
 { "dryRun": false }
 ```
 
-The tool returns a list of planned or completed renames. If two files would collide after slug conversion, the tool reports an error and asks you to resolve manually.
+The tool returns a list of planned or completed renames. If two files would collide after slug conversion, targets are auto-suffixed (`-2`, `-3`, …) so the batch can proceed without manual renaming.
 
 ## Package contents
 

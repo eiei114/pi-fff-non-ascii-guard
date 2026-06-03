@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const libRoot = path.join(root, "..", "lib");
 
-const { hasNonAscii, scanNonAsciiPaths } = await import(
+const { hasNonAscii, isRenamableFile, scanNonAsciiPaths } = await import(
   pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href
 );
 const { toAsciiSlug } = await import(
@@ -56,7 +56,43 @@ test("scanNonAsciiPaths flags file and parent directory segments", () => {
   }
 });
 
+test("scanNonAsciiPaths detects non-ASCII workspace root", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-root-"));
+  const nested = path.join(tmp, "日本語");
+  try {
+    fs.mkdirSync(nested, { recursive: true });
+    fs.writeFileSync(path.join(nested, "readme.txt"), "ok");
+
+    const entries = scanNonAsciiPaths(nested);
+    assert.ok(
+      entries.some((e) => e.relativePath === "." && e.kind === "directory"),
+      "expected workspace root flagged when cwd path is non-ASCII"
+    );
+    assert.ok(
+      entries.some((e) => e.relativePath === "readme.txt" && e.kind === "file"),
+      "expected file under non-ASCII cwd"
+    );
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("isRenamableFile ignores ASCII files under non-ASCII directories", () => {
+  const entry = {
+    relativePath: "日本語/foo.txt",
+    kind: "file",
+    dir: "日本語",
+    basename: "foo",
+    ext: ".txt",
+  };
+  assert.equal(isRenamableFile(entry), false);
+});
+
 test("buildRenamePlan disambiguates slug collisions", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-plan-"));
+  try {
+    const scripts = path.join(tmp, "scripts");
+    fs.mkdirSync(scripts, { recursive: true });
   const entries = [
     {
       relativePath: "scripts/SpreadsheetToJson_wrapあり・nullなし.gs",
@@ -73,7 +109,7 @@ test("buildRenamePlan disambiguates slug collisions", () => {
       ext: ".gs",
     },
   ];
-  const { renames, collisions } = buildRenamePlan(entries);
+  const { renames, collisions } = buildRenamePlan(entries, tmp);
   assert.equal(collisions.length, 1);
   assert.equal(collisions[0][0], "scripts/spreadsheettojson_wrap-null.gs");
   const targets = new Set(renames.map((r) => r.newPath));
@@ -81,4 +117,33 @@ test("buildRenamePlan disambiguates slug collisions", () => {
   assert.ok(
     renames.some((r) => r.newPath === "scripts/spreadsheettojson_wrap-null-2.gs")
   );
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("buildRenamePlan avoids existing on-disk targets", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-exists-"));
+  try {
+    const scripts = path.join(tmp, "scripts");
+    fs.mkdirSync(scripts, { recursive: true });
+    fs.writeFileSync(
+      path.join(scripts, "spreadsheettojson_wrap-null.gs"),
+      "// existing"
+    );
+    const entries = [
+      {
+        relativePath: "scripts/SpreadsheetToJson_wrapあり・nullなし.gs",
+        kind: "file",
+        dir: "scripts",
+        basename: "SpreadsheetToJson_wrapあり・nullなし",
+        ext: ".gs",
+      },
+    ];
+    const { renames } = buildRenamePlan(entries, tmp);
+    assert.equal(renames.length, 1);
+    assert.equal(renames[0].newPath, "scripts/spreadsheettojson_wrap-null-2.gs");
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });

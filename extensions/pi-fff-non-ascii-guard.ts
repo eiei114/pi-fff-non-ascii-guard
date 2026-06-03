@@ -6,6 +6,7 @@ import { FFF_TOOL_NAMES, MAX_BLOCK_LIST } from "../lib/constants.ts";
 import { buildRenamePlan } from "../lib/rename-plan.ts";
 import {
   formatEntryList,
+  isRenamableFile,
   scanNonAsciiPaths,
   type NonAsciiEntry,
 } from "../lib/non-ascii-scan.ts";
@@ -136,7 +137,7 @@ export default function (pi: ExtensionAPI) {
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       invalidateNonAsciiCache();
       const entries = scanNonAsciiPaths(ctx.cwd);
-      const files = entries.filter((e) => e.kind === "file");
+      const files = entries.filter(isRenamableFile);
 
       if (files.length === 0) {
         const dirs = entries.filter((e) => e.kind === "directory");
@@ -163,7 +164,7 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      const { renames, collisions } = buildRenamePlan(files);
+      const { renames, collisions } = buildRenamePlan(files, ctx.cwd);
 
       if (params.dryRun !== false) {
         const preview = renames

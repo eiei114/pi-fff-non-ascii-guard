@@ -20,9 +20,18 @@ export interface NonAsciiEntry {
   ext: string;
 }
 
+/** True when sanitize_filenames would change this file's basename. */
+export function isRenamableFile(entry: NonAsciiEntry): boolean {
+  return entry.kind === "file" && hasNonAscii(entry.basename + entry.ext);
+}
+
 export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
   const results: NonAsciiEntry[] = [];
   const seen = new Set<string>();
+
+  if (hasNonAscii(toPosix(cwd))) {
+    record(".", "directory");
+  }
 
   function record(relativePath: string, kind: NonAsciiKind) {
     if (seen.has(relativePath)) return;
@@ -49,8 +58,9 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
       if (EXCLUDE_DIRS.has(entry.name)) continue;
       const fullPath = path.join(dir, entry.name);
       const relativePath = toPosix(path.relative(cwd, fullPath));
+      const posixFullPath = toPosix(fullPath);
 
-      if (!hasNonAscii(relativePath)) {
+      if (!hasNonAscii(relativePath) && !hasNonAscii(posixFullPath)) {
         if (entry.isDirectory()) walk(fullPath);
         continue;
       }

@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 import { toAsciiSlug } from "./ascii-slug.ts";
 import type { NonAsciiEntry } from "./non-ascii-scan.ts";
@@ -9,8 +10,17 @@ export interface PlannedRename {
   newName: string;
 }
 
-function disambiguateTarget(basePath: string, used: Set<string>): string {
-  if (!used.has(basePath)) {
+function isTargetTaken(relPath: string, used: Set<string>, cwd: string): boolean {
+  if (used.has(relPath)) return true;
+  return fs.existsSync(path.resolve(cwd, relPath));
+}
+
+function disambiguateTarget(
+  basePath: string,
+  used: Set<string>,
+  cwd: string
+): string {
+  if (!isTargetTaken(basePath, used, cwd)) {
     used.add(basePath);
     return basePath;
   }
@@ -18,7 +28,7 @@ function disambiguateTarget(basePath: string, used: Set<string>): string {
   const stem = ext.length > 0 ? basePath.slice(0, -ext.length) : basePath;
   for (let n = 2; n < 10_000; n++) {
     const candidate = `${stem}-${n}${ext}`;
-    if (!used.has(candidate)) {
+    if (!isTargetTaken(candidate, used, cwd)) {
       used.add(candidate);
       return candidate;
     }
@@ -26,7 +36,10 @@ function disambiguateTarget(basePath: string, used: Set<string>): string {
   throw new Error(`Could not disambiguate target path: ${basePath}`);
 }
 
-export function buildRenamePlan(entries: NonAsciiEntry[]): {
+export function buildRenamePlan(
+  entries: NonAsciiEntry[],
+  cwd: string
+): {
   renames: PlannedRename[];
   collisions: [string, string[]][];
 } {
@@ -46,7 +59,7 @@ export function buildRenamePlan(entries: NonAsciiEntry[]): {
     sources.push(e.relativePath);
     baseTargets.set(basePath, sources);
 
-    const newPath = disambiguateTarget(basePath, usedTargets);
+    const newPath = disambiguateTarget(basePath, usedTargets, cwd);
     renames.push({
       oldPath: e.relativePath,
       newPath,
