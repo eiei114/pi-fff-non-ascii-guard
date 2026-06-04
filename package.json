@@ -32,7 +32,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "check": "npm run typecheck && npm test && npm pack --dry-run"
+    "check": "npm run typecheck && npm test && npm pack --dry-run",
+    "version:check": "node scripts/check-version-bump.mjs"
   },
   "publishConfig": {
     "access": "public"
