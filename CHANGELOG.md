@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-06-04
+
+### Fixed
+
+- **fff tool gate** now also blocks `grep`. Non-ASCII paths could still panic `fff-core` via content search while only `find_files` / `fff_multi_grep` were gated.
+
+### Changed
+
+- Blocked-tool lists in notifications and prompts are built from `FFF_TOOL_NAMES` via `formatBlockedFffTools()`.
+
 ## [0.1.4] - 2026-06-03
 
 ### Added

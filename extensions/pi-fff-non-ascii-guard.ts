@@ -2,7 +2,7 @@
 import { Type } from "typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { FFF_TOOL_NAMES, MAX_BLOCK_LIST } from "../lib/constants.ts";
+import { FFF_TOOL_NAMES, formatBlockedFffTools, MAX_BLOCK_LIST } from "../lib/constants.ts";
 import { buildRenamePlan } from "../lib/rename-plan.ts";
 import {
   formatEntryList,
@@ -27,7 +27,9 @@ function notifyNonAscii(ctx: { cwd: string; ui: { notify: (msg: string, level: s
   ctx.ui.notify(
     "Warning: " +
       entries.length +
-      " non-ASCII path(s) detected (fff-core may panic). find_files / fff_multi_grep are blocked until fixed.\n" +
+      " non-ASCII path(s) detected (fff-core may panic). " +
+      formatBlockedFffTools() +
+      " are blocked until fixed.\n" +
       formatEntryList(entries, MAX_BLOCK_LIST) +
       "\n\nLLM: call sanitize_filenames to rename files.",
     "warn"
@@ -56,7 +58,9 @@ export default function (pi: ExtensionAPI) {
         fileCount +
         " file(s), " +
         dirCount +
-        " dir(s)). fff tools find_files and fff_multi_grep are blocked until sanitize_filenames fixes renamable files. Do not retry blocked fff searches.",
+        " dir(s)). fff tools " +
+        formatBlockedFffTools() +
+        " are blocked until sanitize_filenames fixes renamable files. Do not retry blocked fff searches.",
     };
   });
 
@@ -123,7 +127,7 @@ export default function (pi: ExtensionAPI) {
     promptSnippet: "Rename non-ASCII filenames to ASCII slugs",
     promptGuidelines: [
       "Use sanitize_filenames when non-ASCII filenames are detected or when fff-core panics occur.",
-      "find_files and fff_multi_grep stay blocked until renamable files are fixed.",
+      formatBlockedFffTools() + " stay blocked until renamable files are fixed.",
     ],
     parameters: Type.Object({
       dryRun: Type.Optional(
@@ -234,7 +238,7 @@ export default function (pi: ExtensionAPI) {
           " non-ASCII path(s) still remain (dirs or new files). fff tools stay blocked:\n" +
           formatEntryList(remaining, MAX_BLOCK_LIST);
       } else {
-        text += "\n\nAll paths ASCII-safe. find_files / fff_multi_grep unblocked.";
+        text += "\n\nAll paths ASCII-safe. " + formatBlockedFffTools() + " unblocked.";
       }
 
       return {
