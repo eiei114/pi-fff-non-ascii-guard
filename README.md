@@ -28,7 +28,7 @@ This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 ## Features
 
 - **Session-start scan** — automatically detects non-ASCII paths when a Pi session begins
-- **fff tool gate** — blocks `find_files` and `fff_multi_grep` while non-ASCII paths remain (prevents fff-core panic)
+- **fff tool gate** — blocks `grep`, `find_files`, and `fff_multi_grep` while non-ASCII paths remain (prevents fff-core panic)
 - **Warning notification** — alerts the LLM when problematic paths are found
 - **`list_non_ascii_paths` tool** — list files and directories with non-ASCII path segments
 - **`sanitize_filenames` tool** — preview or execute safe ASCII slug renames for files
@@ -53,7 +53,7 @@ pi install -l git:github.com/eiei114/pi-fff-non-ascii-guard
 2. Start a Pi session in a workspace that may contain non-ASCII filenames.
 3. If non-ASCII filenames are detected, Pi shows a warning with the file list.
 4. Ask the LLM to call `sanitize_filenames` with `dryRun: true` to preview, then `dryRun: false` to execute.
-5. After paths are ASCII-safe, `find_files` / `fff_multi_grep` work again.
+5. After paths are ASCII-safe, `grep` / `find_files` / `fff_multi_grep` work again.
 
 While non-ASCII paths exist, Pi blocks fff search tools and returns a fix hint instead of crashing.
 
@@ -140,7 +140,7 @@ byte index 44 is not a char boundary; it is inside 'な' (bytes 43..46) of
 `scripts\SpreadsheetToJson_wrapあり・nullなし.gs`
 ```
 
-The v0.1.4 gate blocks `find_files` / `fff_multi_grep` until those paths are renamed.
+The fff tool gate blocks `grep`, `find_files`, and `fff_multi_grep` until those paths are renamed.
 
 Observed error:
 
