@@ -97,6 +97,7 @@ pi-fff-non-ascii-guard/
 │   └── publish.yml                 # Publish to npm on tag or release
 ├── CHANGELOG.md
 ├── LICENSE                         # MIT
+├── SECURITY.md                     # Vulnerability reporting
 ├── package.json
 └── README.md
 ```
@@ -122,6 +123,8 @@ Releases are automated:
 4. The tag triggers the **Publish** workflow, which publishes to npm with provenance.
 
 ## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 - No network requests.
 - No environment variables or secrets read.

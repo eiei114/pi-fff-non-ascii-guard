@@ -1,4 +1,4 @@
-﻿import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+﻿import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -20,7 +20,7 @@ function blockReason(toolName: string, entries: NonAsciiEntry[]): string {
   );
 }
 
-function notifyNonAscii(ctx: { cwd: string; ui: { notify: (msg: string, level: string) => void } }) {
+function notifyNonAscii(ctx: ExtensionContext) {
   const entries = getNonAsciiEntries(ctx.cwd);
   if (entries.length === 0) return;
 
@@ -32,7 +32,7 @@ function notifyNonAscii(ctx: { cwd: string; ui: { notify: (msg: string, level: s
       " are blocked until fixed.\n" +
       formatEntryList(entries, MAX_BLOCK_LIST) +
       "\n\nLLM: call sanitize_filenames to rename files.",
-    "warn"
+    "warning"
   );
 }
 
