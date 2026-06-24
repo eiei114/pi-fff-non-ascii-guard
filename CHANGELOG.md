@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2026-06-25
+
+### Added
+
+- **`ROADMAP.md`** at the repository root: maintenance direction (`oss-maintenance-roadmap-direction-v1`), Month 1–3 phased goals, fff tool-gate coverage priorities, edge-case testing strategy, performance roadmap, candidate maintenance seeds, and a `pi-extension-template` compliance checklist.
+- **README** now links to `ROADMAP.md` (intro + Release section).
+- `ROADMAP.md` is included in the npm package `files`.
+
 ## [0.1.6] - 2026-06-08
 
 ### Added

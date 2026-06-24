@@ -10,6 +10,8 @@
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
 
+See the [Roadmap](ROADMAP.md) for the maintenance direction and planned work.
+
 ## What this is
 
 A Pi extension that detects and renames non-ASCII filenames before `fff-core` can panic on UTF-8 byte boundaries. It scans your workspace on session start, warns about problematic filenames, and provides a tool to safely rename them to ASCII slugs.
@@ -115,7 +117,7 @@ npm run check   # tests + npm pack --dry-run
 
 ## Release
 
-Releases are automated:
+Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Releases are automated:
 
 1. Bump `version` in `package.json`.
 2. Merge to `main`.
