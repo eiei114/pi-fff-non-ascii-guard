@@ -83,7 +83,22 @@ Lists every file and directory whose relative path contains non-ASCII characters
 { "dryRun": false }
 ```
 
-The tool returns a list of planned or completed renames. If two files would collide after slug conversion, targets are auto-suffixed (`-2`, `-3`, …) so the batch can proceed without manual renaming.
+Dry-run output is a stable report of each relative source path and its proposed destination path:
+
+```text
+Dry run -- 2 file(s) to rename:
+  scripts/SpreadsheetToJson_wrapあり・nullなし.gs -> scripts/spreadsheettojson_wrap-null.gs
+  scripts/SpreadsheetToJson_wrapなし・nullあり.gs -> scripts/spreadsheettojson_wrap-null-2.gs
+
+No filesystem changes made.
+
+Conflict preview (auto-suffixed -2, -3, ... when needed):
+  [slug collision] scripts/spreadsheettojson_wrap-null.gs <- scripts/SpreadsheetToJson_wrapあり・nullなし.gs, scripts/SpreadsheetToJson_wrapなし・nullあり.gs; planned: scripts/spreadsheettojson_wrap-null.gs, scripts/spreadsheettojson_wrap-null-2.gs
+```
+
+If two files would collide after slug conversion, or if the first-choice destination already exists on disk, the conflict preview flags the risk before you run apply mode. The current behavior is to auto-suffix planned destinations (`-2`, `-3`, …) so the batch can proceed without manual renaming. Future collision-policy work may tune those suffix rules; for now, treat the preview as the source of truth and manually rename files first if the proposed suffixes are not what you want.
+
+Apply mode returns a list of completed renames and any errors.
 
 ## Package contents
 
