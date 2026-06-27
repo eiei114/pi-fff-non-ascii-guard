@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current release: **0.1.6** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
+Current release: **0.1.8** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
 
 ## What this extension does (shipped)
 
@@ -57,6 +57,7 @@ The smoke tests in `tests/` cover slug conversion, collision disambiguation, and
 
 - ASCII-basename files that only sit under non-ASCII directories (already handled; keep a regression test).
 - Rename targets that already exist on disk (already guarded; keep a regression test).
+- Dry-run previews for unique renames, slug collisions, and already-existing first-choice destinations (covered in 0.1.8).
 - Workspace-root (`cwd`) non-ASCII detection (already handled; keep a regression test).
 - Slug suffix exhaustion / very large collision batches.
 - Empty and deeply-nested non-ASCII directories (currently manual-rename only).

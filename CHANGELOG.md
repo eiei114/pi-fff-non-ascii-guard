@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-06-28
+
+### Added
+
+- `sanitize_filenames` dry-run output now reports stable source-path → destination-path mappings.
+- Dry-run conflict preview now flags slug collisions and already-existing first-choice destinations before apply mode.
+- Tests cover unique rename previews, slug collision previews, and existing-destination previews.
+
+### Changed
+
+- README now explains how to interpret dry-run conflict previews and the current auto-suffix behavior.
+
 ## [0.1.7] - 2026-06-25
 
 ### Added
