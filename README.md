@@ -108,8 +108,9 @@ Clone and validate:
 ```bash
 git clone https://github.com/eiei114/pi-fff-non-ascii-guard.git
 cd pi-fff-non-ascii-guard
-npm test        # smoke tests
-npm run check   # tests + npm pack --dry-run
+npm run typecheck   # type-check all TypeScript sources
+npm test            # smoke tests
+npm run check       # typecheck + tests + npm pack --dry-run
 ```
 
 ## Release

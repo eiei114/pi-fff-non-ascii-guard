@@ -20,7 +20,7 @@ function blockReason(toolName: string, entries: NonAsciiEntry[]): string {
   );
 }
 
-function notifyNonAscii(ctx: { cwd: string; ui: { notify: (msg: string, level: string) => void } }) {
+function notifyNonAscii(ctx: { cwd: string; ui: { notify: (message: string, type?: "error" | "info" | "warning") => void } }) {
   const entries = getNonAsciiEntries(ctx.cwd);
   if (entries.length === 0) return;
 
@@ -32,7 +32,7 @@ function notifyNonAscii(ctx: { cwd: string; ui: { notify: (msg: string, level: s
       " are blocked until fixed.\n" +
       formatEntryList(entries, MAX_BLOCK_LIST) +
       "\n\nLLM: call sanitize_filenames to rename files.",
-    "warn"
+    "warning"
   );
 }
 
