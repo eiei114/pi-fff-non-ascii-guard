@@ -13,7 +13,6 @@
   },
   "include": [
     "extensions/**/*.ts",
-    "lib/**/*.ts",
-    "tests/**/*.mjs"
+    "lib/**/*.ts"
   ]
 }

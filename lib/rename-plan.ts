@@ -10,6 +10,30 @@ export interface PlannedRename {
   newName: string;
 }
 
+export interface ExistingDestinationConflict {
+  targetPath: string;
+  sourcePaths: string[];
+}
+
+export type RenamePlanConflict =
+  | {
+      type: "slug_collision";
+      targetPath: string;
+      sourcePaths: string[];
+    }
+  | {
+      type: "existing_destination";
+      targetPath: string;
+      sourcePaths: string[];
+    };
+
+export interface RenamePlan {
+  renames: PlannedRename[];
+  collisions: [string, string[]][];
+  existingDestinations: ExistingDestinationConflict[];
+  conflicts: RenamePlanConflict[];
+}
+
 function isTargetTaken(relPath: string, used: Set<string>, cwd: string): boolean {
   if (used.has(relPath)) return true;
   return fs.existsSync(path.resolve(cwd, relPath));
@@ -39,10 +63,7 @@ function disambiguateTarget(
 export function buildRenamePlan(
   entries: NonAsciiEntry[],
   cwd: string
-): {
-  renames: PlannedRename[];
-  collisions: [string, string[]][];
-} {
+): RenamePlan {
   const files = entries
     .filter((e) => e.kind === "file")
     .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
@@ -69,5 +90,74 @@ export function buildRenamePlan(
   }
 
   const collisions = [...baseTargets.entries()].filter(([, v]) => v.length > 1);
-  return { renames, collisions };
+  const existingDestinations = [...baseTargets.entries()]
+    .filter(([targetPath]) => fs.existsSync(path.resolve(cwd, targetPath)))
+    .map(([targetPath, sourcePaths]) => ({ targetPath, sourcePaths }));
+  const conflicts: RenamePlanConflict[] = [
+    ...collisions.map(([targetPath, sourcePaths]) => ({
+      type: "slug_collision" as const,
+      targetPath,
+      sourcePaths,
+    })),
+    ...existingDestinations.map(({ targetPath, sourcePaths }) => ({
+      type: "existing_destination" as const,
+      targetPath,
+      sourcePaths,
+    })),
+  ];
+
+  return { renames, collisions, existingDestinations, conflicts };
+}
+
+function plannedTargetsForSources(
+  renames: PlannedRename[],
+  sourcePaths: string[]
+): string[] {
+  const sourceSet = new Set(sourcePaths);
+  return renames
+    .filter((r) => sourceSet.has(r.oldPath))
+    .map((r) => r.newPath);
+}
+
+export function formatRenamePlanReport(plan: RenamePlan): string {
+  const preview = plan.renames
+    .map((r) => "  " + r.oldPath + " -> " + r.newPath)
+    .join("\n");
+  let text =
+    "Dry run -- " +
+    plan.renames.length +
+    " file(s) to rename:\n" +
+    preview +
+    "\n\nNo filesystem changes made.";
+
+  if (plan.conflicts.length > 0) {
+    const conflictList = plan.conflicts
+      .map((conflict) => {
+        const planned = plannedTargetsForSources(plan.renames, conflict.sourcePaths);
+        const plannedText = planned.length > 0 ? "; planned: " + planned.join(", ") : "";
+        if (conflict.type === "slug_collision") {
+          return (
+            "  [slug collision] " +
+            conflict.targetPath +
+            " <- " +
+            conflict.sourcePaths.join(", ") +
+            plannedText
+          );
+        }
+        return (
+          "  [existing destination] " +
+          conflict.targetPath +
+          " already exists <- " +
+          conflict.sourcePaths.join(", ") +
+          plannedText
+        );
+      })
+      .join("\n");
+    text +=
+      "\n\nConflict preview (auto-suffixed -2, -3, ... when needed):\n" +
+      conflictList;
+  }
+
+  text += "\n\nCall with dryRun: false to execute.";
+  return text;
 }

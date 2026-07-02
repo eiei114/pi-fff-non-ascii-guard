@@ -10,6 +10,8 @@
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
 
+See the [Roadmap](ROADMAP.md) for the maintenance direction and planned work.
+
 ## What this is
 
 A Pi extension that detects and renames non-ASCII filenames before `fff-core` can panic on UTF-8 byte boundaries. It scans your workspace on session start, warns about problematic filenames, and provides a tool to safely rename them to ASCII slugs.
@@ -81,7 +83,22 @@ Lists every file and directory whose relative path contains non-ASCII characters
 { "dryRun": false }
 ```
 
-The tool returns a list of planned or completed renames. If two files would collide after slug conversion, targets are auto-suffixed (`-2`, `-3`, …) so the batch can proceed without manual renaming.
+Dry-run output is a stable report of each relative source path and its proposed destination path:
+
+```text
+Dry run -- 2 file(s) to rename:
+  scripts/SpreadsheetToJson_wrapあり・nullなし.gs -> scripts/spreadsheettojson_wrap-null.gs
+  scripts/SpreadsheetToJson_wrapなし・nullあり.gs -> scripts/spreadsheettojson_wrap-null-2.gs
+
+No filesystem changes made.
+
+Conflict preview (auto-suffixed -2, -3, ... when needed):
+  [slug collision] scripts/spreadsheettojson_wrap-null.gs <- scripts/SpreadsheetToJson_wrapあり・nullなし.gs, scripts/SpreadsheetToJson_wrapなし・nullあり.gs; planned: scripts/spreadsheettojson_wrap-null.gs, scripts/spreadsheettojson_wrap-null-2.gs
+```
+
+If two files would collide after slug conversion, or if the first-choice destination already exists on disk, the conflict preview flags the risk before you run apply mode. The current behavior is to auto-suffix planned destinations (`-2`, `-3`, …) so the batch can proceed without manual renaming. Future collision-policy work may tune those suffix rules; for now, treat the preview as the source of truth and manually rename files first if the proposed suffixes are not what you want.
+
+Apply mode returns a list of completed renames and any errors.
 
 ## Package contents
 
@@ -97,6 +114,7 @@ pi-fff-non-ascii-guard/
 │   └── publish.yml                 # Publish to npm on tag or release
 ├── CHANGELOG.md
 ├── LICENSE                         # MIT
+├── SECURITY.md                     # Vulnerability reporting
 ├── package.json
 └── README.md
 ```
@@ -115,7 +133,7 @@ npm run check       # typecheck + tests + npm pack --dry-run
 
 ## Release
 
-Releases are automated:
+Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Releases are automated:
 
 1. Bump `version` in `package.json`.
 2. Merge to `main`.
@@ -123,6 +141,8 @@ Releases are automated:
 4. The tag triggers the **Publish** workflow, which publishes to npm with provenance.
 
 ## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 - No network requests.
 - No environment variables or secrets read.
