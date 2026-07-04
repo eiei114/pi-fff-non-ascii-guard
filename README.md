@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/github/license/eiei114/pi-fff-non-ascii-guard)](https://github.com/eiei114/pi-fff-non-ascii-guard/blob/main/LICENSE)
 ![Pi Package](https://img.shields.io/badge/Pi-Package-blue)
 [![Trusted Publishing](https://img.shields.io/badge/npm-provenance-yellow)](https://docs.npmjs.com/generating-provenance-statements)
+<a href="https://buymeacoffee.com/ekawano114m"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60"></a>
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
 
