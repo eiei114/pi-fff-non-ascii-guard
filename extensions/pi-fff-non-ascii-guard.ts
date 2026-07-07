@@ -1,10 +1,10 @@
-﻿import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+﻿import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { formatBlockedToolReason } from "../lib/block-warning.ts";
 import { FFF_TOOL_NAMES, formatBlockedFffTools, MAX_BLOCK_LIST } from "../lib/constants.ts";
-import { buildRenamePlan } from "../lib/rename-plan.ts";
+import { buildRenamePlan, formatRenamePlanReport } from "../lib/rename-plan.ts";
 import {
   formatEntryList,
   isRenamableFile,
@@ -13,7 +13,7 @@ import {
 } from "../lib/non-ascii-scan.ts";
 import { getNonAsciiEntries, invalidateNonAsciiCache } from "../lib/scan-cache.ts";
 
-function notifyNonAscii(ctx: { cwd: string; ui: { notify: (message: string, type?: "error" | "info" | "warning") => void } }) {
+function notifyNonAscii(ctx: ExtensionContext) {
   const entries = getNonAsciiEntries(ctx.cwd);
   if (entries.length === 0) return;
 
@@ -161,28 +161,19 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      const { renames, collisions } = buildRenamePlan(files, ctx.cwd);
+      const plan = buildRenamePlan(files, ctx.cwd);
+      const { renames, collisions } = plan;
 
       if (params.dryRun !== false) {
-        const preview = renames
-          .map((r) => "  " + r.oldName + " -> " + r.newName)
-          .join("\n");
-        let text =
-          "Dry run -- " +
-          renames.length +
-          " file(s) to rename:\n" +
-          preview +
-          "\n\nCall with dryRun: false to execute.";
-        if (collisions.length > 0) {
-          const collisionList = collisions
-            .map(([target, sources]) => "  " + target + " <- " + sources.join(", "))
-            .join("\n");
-          text +=
-            "\n\nSlug collisions (auto-suffixed -2, -3, ...):\n" + collisionList;
-        }
         return {
-          content: [{ type: "text", text }],
-          details: { dryRun: true, renames, collisions },
+          content: [{ type: "text", text: formatRenamePlanReport(plan) }],
+          details: {
+            dryRun: true,
+            renames,
+            collisions,
+            existingDestinations: plan.existingDestinations,
+            conflicts: plan.conflicts,
+          },
         };
       }
 

@@ -1,16 +1,47 @@
 # Changelog
 
+## Unreleased
+
+- Add Buy Me a Coffee sponsor button to README and native GitHub funding link via `.github/FUNDING.yml`.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.7] - 2026-07-07
+## [0.1.10] - 2026-07-07
 
 ### Changed
 
 - **fff tool block warnings** collapse after the first detailed emission for an unchanged non-ASCII path set; detailed output shows at most 2 example paths plus `... and N more`.
 - Repeated blocks for the same path set emit a one-line summary while keeping `list_non_ascii_paths` / `sanitize_filenames(dryRun=true)` remediation guidance visible.
+
+## [0.1.8] - 2026-06-28
+
+### Added
+
+- `sanitize_filenames` dry-run output now reports stable source-path → destination-path mappings.
+- Dry-run conflict preview now flags slug collisions and already-existing first-choice destinations before apply mode.
+- Tests cover unique rename previews, slug collision previews, and existing-destination previews.
+
+### Changed
+
+- README now explains how to interpret dry-run conflict previews and the current auto-suffix behavior.
+
+## [0.1.7] - 2026-06-25
+
+### Added
+
+- **`ROADMAP.md`** at the repository root: maintenance direction (`oss-maintenance-roadmap-direction-v1`), Month 1–3 phased goals, fff tool-gate coverage priorities, edge-case testing strategy, performance roadmap, candidate maintenance seeds, and a `pi-extension-template` compliance checklist.
+- **README** now links to `ROADMAP.md` (intro + Release section).
+- `ROADMAP.md` is included in the npm package `files`.
+
+## [0.1.6] - 2026-06-08
+
+### Added
+
+- **`typecheck` script** (`tsc --noEmit`) and CI wiring via `npm run check`.
+- **`SECURITY.md`** with vulnerability reporting instructions.
 
 ## [0.1.5] - 2026-06-04
 
