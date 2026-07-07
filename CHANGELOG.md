@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2026-07-07
+
+### Changed
+
+- **fff tool block warnings** collapse after the first detailed emission for an unchanged non-ASCII path set; detailed output shows at most 2 example paths plus `... and N more`.
+- Repeated blocks for the same path set emit a one-line summary while keeping `list_non_ascii_paths` / `sanitize_filenames(dryRun=true)` remediation guidance visible.
+
 ## [0.1.5] - 2026-06-04
 
 ### Fixed
