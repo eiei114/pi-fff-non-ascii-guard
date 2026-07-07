@@ -2,6 +2,7 @@
 import { Type } from "typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { formatBlockedToolReason } from "../lib/block-warning.ts";
 import { FFF_TOOL_NAMES, formatBlockedFffTools, MAX_BLOCK_LIST } from "../lib/constants.ts";
 import { buildRenamePlan, formatRenamePlanReport } from "../lib/rename-plan.ts";
 import {
@@ -11,14 +12,6 @@ import {
   type NonAsciiEntry,
 } from "../lib/non-ascii-scan.ts";
 import { getNonAsciiEntries, invalidateNonAsciiCache } from "../lib/scan-cache.ts";
-
-function blockReason(toolName: string, entries: NonAsciiEntry[]): string {
-  return (
-    `Blocked ${toolName}: ${entries.length} non-ASCII path(s) in workspace (fff-core may panic on UTF-8 byte boundaries).\n` +
-    formatEntryList(entries, MAX_BLOCK_LIST) +
-    "\n\nFix: call sanitize_filenames with dryRun:true, review, then dryRun:false."
-  );
-}
 
 function notifyNonAscii(ctx: ExtensionContext) {
   const entries = getNonAsciiEntries(ctx.cwd);
@@ -70,7 +63,7 @@ export default function (pi: ExtensionAPI) {
     const entries = getNonAsciiEntries(ctx.cwd);
     if (entries.length === 0) return;
 
-    return { block: true, reason: blockReason(event.toolName, entries) };
+    return { block: true, reason: formatBlockedToolReason(event.toolName, entries) };
   });
 
   pi.registerTool({

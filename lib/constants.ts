@@ -15,4 +15,7 @@ export function formatBlockedFffTools(): string {
   return [...FFF_TOOL_NAMES].sort().join(" / ");
 }
 
+/** Max path examples in a detailed fff tool block warning. */
+export const MAX_DETAILED_EXAMPLES = 2;
+
 export const MAX_BLOCK_LIST = 12;

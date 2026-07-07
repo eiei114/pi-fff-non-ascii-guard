@@ -1,3 +1,4 @@
+import { resetBlockWarningState } from "./block-warning.ts";
 import type { NonAsciiEntry } from "./non-ascii-scan.ts";
 import { scanNonAsciiPaths } from "./non-ascii-scan.ts";
 
@@ -12,4 +13,5 @@ export function getNonAsciiEntries(cwd: string): NonAsciiEntry[] {
 
 export function invalidateNonAsciiCache(): void {
   cached = null;
+  resetBlockWarningState();
 }
