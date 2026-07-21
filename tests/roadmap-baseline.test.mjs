@@ -14,7 +14,7 @@ const autoRelease = readFileSync(path.join(repoRoot, ".github", "workflows", "au
 const publish = readFileSync(path.join(repoRoot, ".github", "workflows", "publish.yml"), "utf8");
 
 const workflowFiles = [ci, autoRelease, publish];
-const floatingActionRef = /uses:\s*actions\/(checkout|setup-node)@v\d/;
+const selectedActionRef = /uses:\s*actions\/(checkout|setup-node)@([^\s#]+)/g;
 
 test("ROADMAP Current release matches package.json version", () => {
   const expected = `Current release: **${pkg.version}**`;
@@ -35,7 +35,10 @@ test("ROADMAP documents GitHub Actions SHA pinning as shipped", () => {
   assert.match(roadmap, /\| GitHub Actions pinned to SHAs \| ✅/);
   assert.match(roadmap, /\| 03 \| Pin GitHub Actions to commit SHAs .*\| ✅ shipped \|/);
   for (const workflow of workflowFiles) {
-    assert.doesNotMatch(workflow, floatingActionRef, "workflow still uses floating @v action refs");
-    assert.match(workflow, /uses:\s*actions\/(checkout|setup-node)@[0-9a-f]{40}/);
+    const refs = [...workflow.matchAll(selectedActionRef)];
+    assert.ok(refs.length > 0, "workflow has no selected action references");
+    for (const [, , ref] of refs) {
+      assert.match(ref, /^[0-9a-f]{40}$/, `workflow uses mutable action ref: ${ref}`);
+    }
   }
 });
