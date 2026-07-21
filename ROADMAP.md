@@ -23,7 +23,7 @@ Current release: **0.1.11** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs
 
 Close the remaining `pi-extension-template` compliance gaps so every merged, publishable change can actually reach npm and the supply chain is hardened.
 
-- Pin third-party GitHub Actions to commit SHAs (currently floating `@v4`).
+- ~~Pin third-party GitHub Actions to commit SHAs~~ **shipped** — `ci.yml`, `auto-release.yml`, and `publish.yml` pin `actions/checkout` and `actions/setup-node` to commit SHAs.
 - ~~Add a `version:check` CI gate~~ **shipped** — `ci.yml` runs `npm run version:check` on pull requests.
 
 ### Month 2 — Stabilization
@@ -73,7 +73,7 @@ Thin, independently verifiable work items (30–90 min) derived from the phases 
 
 | # | Seed | Phase | Bump | Blocked by | Ready |
 |---|---|---|---|---|---|
-| 03 | Pin GitHub Actions to commit SHAs | M1 public quality | none | — | ✅ |
+| 03 | Pin GitHub Actions to commit SHAs | M1 public quality | none | — | ✅ shipped |
 | 04 | Add `version:check` CI gate | M1 public quality | none | — | ✅ shipped |
 | 05 | Harden fff tool gate against tool-name drift | M2 stabilization | patch | — | ✅ |
 | 06 | Add startup scan timing instrumentation | M3 speed | patch | — | ✅ |
@@ -83,12 +83,12 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.10**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.11**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|
 | README (minimal-docs policy, badges) | ✅ | Restructured in 0.1.2; all 7 badges present (CI, Publish, npm version, npm downloads, License, Pi Package, Trusted Publishing). |
-| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.10. |
+| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.11. |
 | LICENSE (MIT) | ✅ | Present. |
 | SECURITY.md | ✅ | Added in 0.1.6, linked from README. |
 | `package.json` minimum (`files`, `pi.extensions`, metadata) | ✅ | `files` ships README, ROADMAP, CHANGELOG, LICENSE, SECURITY, `extensions`, `lib`. |
@@ -96,7 +96,7 @@ Status as of **0.1.10**. Baseline: [`pi-extension-template/Docs/pi-extension-oss
 | `typecheck` script | ✅ | Added in 0.1.6. |
 | npm publish (Trusted Publishing / provenance, no token) | ✅ | `publish.yml` uses OIDC (`id-token: write`), no `NPM_TOKEN`. |
 | Release handoff (auto-release → publish) | ✅ | `auto-release.yml` dispatches `publish.yml` after tag (fixed in 0.1.3). |
-| GitHub Actions pinned to SHAs | ❌ | Floating `@v4` in `ci.yml`, `auto-release.yml`, `publish.yml` → seed 03. |
+| GitHub Actions pinned to SHAs | ✅ | `ci.yml`, `auto-release.yml`, and `publish.yml` pin `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
 | `version:check` CI gate | ✅ | `ci.yml` runs `npm run version:check` on pull requests (seed 04). |
 | Resource-collision / template-generic naming | ✅ | Package and tool names are `pi-fff-non-ascii-guard`-specific. |
 
