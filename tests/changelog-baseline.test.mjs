@@ -21,7 +21,9 @@ test("CHANGELOG has a released section for the current package version", () => {
 });
 
 test("CHANGELOG Unreleased does not keep a pending bump for the current version", () => {
-  const unreleasedMatch = changelog.match(/^## Unreleased\r?\n([\s\S]*?)(?=^## \[|$)/m);
+  const unreleasedMatch = changelog.match(
+    /^## Unreleased\r?\n([\s\S]*?)(?=^## \[|$(?![\s\S]))/m,
+  );
   assert.ok(unreleasedMatch, "CHANGELOG missing the Unreleased section");
   const unreleased = unreleasedMatch[1];
   const pendingBump = new RegExp(
