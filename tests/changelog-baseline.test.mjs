@@ -20,6 +20,19 @@ test("CHANGELOG has a released section for the current package version", () => {
   );
 });
 
+test("CHANGELOG keeps Keep a Changelog boilerplate outside Unreleased", () => {
+  const unreleasedMatch = changelog.match(
+    /^## Unreleased\r?\n([\s\S]*?)(?=^## \[|$(?![\s\S]))/m,
+  );
+  assert.ok(unreleasedMatch, "CHANGELOG missing the Unreleased section");
+  const unreleased = unreleasedMatch[1].trim();
+  assert.equal(
+    unreleased,
+    "",
+    "Unreleased should only contain pending release notes, not boilerplate",
+  );
+});
+
 test("CHANGELOG Unreleased does not keep a pending bump for the current version", () => {
   const unreleasedMatch = changelog.match(
     /^## Unreleased\r?\n([\s\S]*?)(?=^## \[|$(?![\s\S]))/m,
