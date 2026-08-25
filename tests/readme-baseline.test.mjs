@@ -11,7 +11,7 @@ const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")
 const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
 
 test("README package contents lists every npm-packaged markdown doc", () => {
-  const treeMatch = readme.match(/^## Package contents\r?\n([\s\S]*?)(?=^## |\Z)/m);
+  const treeMatch = readme.match(/^## Package contents\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
   assert.ok(treeMatch, "README missing Package contents section");
   const tree = treeMatch[1];
   const markdownFiles = (pkg.files ?? []).filter((entry) => entry.endsWith(".md"));
@@ -25,11 +25,11 @@ test("README package contents lists every npm-packaged markdown doc", () => {
 });
 
 test("README Development section documents version:check CI guard", () => {
-  const devSection = readme.match(/^## Development\r?\n([\s\S]*?)(?=^## |\Z)/m);
+  const devSection = readme.match(/^## Development\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
   assert.ok(devSection, "README missing Development section");
   assert.match(
     devSection[1],
-    /npm run version:check/,
-    "Development section should document npm run version:check for PR authors",
+    /BASE_REF=origin\/main npm run version:check/,
+    "Development section should document the complete BASE_REF=origin/main version check command for PR authors",
   );
 });

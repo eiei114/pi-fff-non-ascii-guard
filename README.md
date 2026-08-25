@@ -133,7 +133,7 @@ cd pi-fff-non-ascii-guard
 npm run typecheck   # type-check all TypeScript sources
 npm test            # smoke tests
 npm run check       # typecheck + tests + npm pack --dry-run
-npm run version:check  # PR-only semver/CHANGELOG guard (needs BASE_REF=origin/main)
+BASE_REF=origin/main npm run version:check  # PR-only semver/CHANGELOG guard
 ```
 
 ## Release
