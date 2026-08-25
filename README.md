@@ -116,6 +116,7 @@ pi-fff-non-ascii-guard/
 │   ├── ci.yml                      # Validate on PR / push
 │   └── publish.yml                 # Publish to npm on tag or release
 ├── CHANGELOG.md
+├── ROADMAP.md                      # Maintenance direction and seeds
 ├── LICENSE                         # MIT
 ├── SECURITY.md                     # Vulnerability reporting
 ├── package.json
@@ -132,6 +133,7 @@ cd pi-fff-non-ascii-guard
 npm run typecheck   # type-check all TypeScript sources
 npm test            # smoke tests
 npm run check       # typecheck + tests + npm pack --dry-run
+BASE_REF=origin/main npm run version:check  # PR-only semver/CHANGELOG guard
 ```
 
 ## Release
