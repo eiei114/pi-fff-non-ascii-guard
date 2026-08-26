@@ -111,10 +111,16 @@ pi-fff-non-ascii-guard/
 │   └── pi-fff-non-ascii-guard.ts   # Extension entry
 ├── lib/                            # Scan, slug, rename-plan helpers
 ├── tests/                          # Smoke tests
-├── .github/workflows/
-│   ├── auto-release.yml            # Auto-tag + release on merge to main
-│   ├── ci.yml                      # Validate on PR / push
-│   └── publish.yml                 # Publish to npm on tag or release
+├── scripts/
+│   └── check-version-bump.mjs      # PR semver/CHANGELOG guard (version:check)
+├── .github/
+│   ├── dependabot.yml              # Weekly npm + GitHub Actions updates
+│   ├── FUNDING.yml                 # GitHub sponsor link
+│   └── workflows/
+│       ├── auto-release.yml        # Auto-tag + release on merge to main
+│       ├── ci.yml                  # Validate on PR / push
+│       └── publish.yml             # Publish to npm on tag or release
+├── tsconfig.json                   # TypeScript config for npm run typecheck
 ├── CHANGELOG.md
 ├── ROADMAP.md                      # Maintenance direction and seeds
 ├── LICENSE                         # MIT

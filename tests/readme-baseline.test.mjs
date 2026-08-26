@@ -33,3 +33,24 @@ test("README Development section documents version:check CI guard", () => {
     "Development section should document the complete BASE_REF=origin/main version check command for PR authors",
   );
 });
+
+test("README package contents lists developer tooling paths", () => {
+  const treeMatch = readme.match(/^## Package contents\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
+  assert.ok(treeMatch, "README missing Package contents section");
+  const tree = treeMatch[1];
+  const toolingEntries = [
+    { parent: "scripts/", name: "check-version-bump.mjs" },
+    { parent: ".github/", name: "dependabot.yml" },
+    { parent: ".github/", name: "FUNDING.yml" },
+    { parent: null, name: "tsconfig.json" },
+  ];
+  for (const { parent, name } of toolingEntries) {
+    assert.ok(tree.includes(name), `README package contents tree missing "${name}"`);
+    if (parent) {
+      assert.ok(
+        tree.includes(parent),
+        `README package contents tree missing parent directory "${parent}" for "${name}"`,
+      );
+    }
+  }
+});
