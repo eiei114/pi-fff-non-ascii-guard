@@ -6,10 +6,11 @@ import { formatBlockedToolReason } from "../lib/block-warning.ts";
 import { FFF_TOOL_NAMES, formatBlockedFffTools, MAX_BLOCK_LIST } from "../lib/constants.ts";
 import { buildRenamePlan, formatRenamePlanReport } from "../lib/rename-plan.ts";
 import {
+  countNonAsciiByKind,
+  filterNonAsciiDirectories,
   formatEntryList,
   isRenamableFile,
   scanNonAsciiPaths,
-  type NonAsciiEntry,
 } from "../lib/non-ascii-scan.ts";
 import { getNonAsciiEntries, invalidateNonAsciiCache } from "../lib/scan-cache.ts";
 
@@ -39,8 +40,7 @@ export default function (pi: ExtensionAPI) {
     const entries = getNonAsciiEntries(ctx.cwd);
     if (entries.length === 0) return;
 
-    const fileCount = entries.filter((e) => e.kind === "file").length;
-    const dirCount = entries.length - fileCount;
+    const { files: fileCount, dirs: dirCount } = countNonAsciiByKind(entries);
 
     return {
       systemPrompt:
@@ -88,8 +88,7 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
-      const files = entries.filter((e) => e.kind === "file").length;
-      const dirs = entries.length - files;
+      const { files, dirs } = countNonAsciiByKind(entries);
 
       return {
         content: [
@@ -137,7 +136,7 @@ export default function (pi: ExtensionAPI) {
       const files = entries.filter(isRenamableFile);
 
       if (files.length === 0) {
-        const dirs = entries.filter((e) => e.kind === "directory");
+        const dirs = filterNonAsciiDirectories(entries);
         if (dirs.length > 0) {
           return {
             content: [

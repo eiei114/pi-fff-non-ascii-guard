@@ -8,9 +8,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const libRoot = path.join(root, "..", "lib");
 
-const { hasNonAscii, isRenamableFile, scanNonAsciiPaths } = await import(
-  pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href
-);
+const {
+  countNonAsciiByKind,
+  filterNonAsciiDirectories,
+  filterNonAsciiFiles,
+  hasNonAscii,
+  isRenamableFile,
+  scanNonAsciiPaths,
+} = await import(pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href);
 const { toAsciiSlug } = await import(
   pathToFileURL(path.join(libRoot, "ascii-slug.ts")).href
 );
@@ -86,6 +91,37 @@ test("isRenamableFile ignores ASCII files under non-ASCII directories", () => {
     ext: ".txt",
   };
   assert.equal(isRenamableFile(entry), false);
+});
+
+test("countNonAsciiByKind and filters partition scan entries", () => {
+  const entries = [
+    {
+      relativePath: "docs/あり.txt",
+      kind: "file",
+      dir: "docs",
+      basename: "あり",
+      ext: ".txt",
+    },
+    {
+      relativePath: "日本語",
+      kind: "directory",
+      dir: ".",
+      basename: "日本語",
+      ext: "",
+    },
+    {
+      relativePath: "日本語/readme.txt",
+      kind: "file",
+      dir: "日本語",
+      basename: "readme",
+      ext: ".txt",
+    },
+  ];
+
+  assert.deepEqual(countNonAsciiByKind(entries), { files: 2, dirs: 1, total: 3 });
+  assert.equal(filterNonAsciiFiles(entries).length, 2);
+  assert.equal(filterNonAsciiDirectories(entries).length, 1);
+  assert.equal(filterNonAsciiDirectories(entries)[0].relativePath, "日本語");
 });
 
 test("buildRenamePlan disambiguates slug collisions", () => {
