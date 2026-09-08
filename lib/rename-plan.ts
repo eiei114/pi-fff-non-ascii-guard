@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { toAsciiSlug } from "./ascii-slug.ts";
-import type { NonAsciiEntry } from "./non-ascii-scan.ts";
+import { filterNonAsciiFiles, type NonAsciiEntry } from "./non-ascii-scan.ts";
 
 export interface PlannedRename {
   oldPath: string;
@@ -64,9 +64,9 @@ export function buildRenamePlan(
   entries: NonAsciiEntry[],
   cwd: string
 ): RenamePlan {
-  const files = entries
-    .filter((e) => e.kind === "file")
-    .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  const files = filterNonAsciiFiles(entries).sort((a, b) =>
+    a.relativePath.localeCompare(b.relativePath)
+  );
 
   const baseTargets = new Map<string, string[]>();
   const renames: PlannedRename[] = [];

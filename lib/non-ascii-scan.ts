@@ -25,6 +25,25 @@ export function isRenamableFile(entry: NonAsciiEntry): boolean {
   return entry.kind === "file" && hasNonAscii(entry.basename + entry.ext);
 }
 
+export function filterNonAsciiFiles(entries: NonAsciiEntry[]): NonAsciiEntry[] {
+  return entries.filter((e) => e.kind === "file");
+}
+
+export function filterNonAsciiDirectories(
+  entries: NonAsciiEntry[]
+): NonAsciiEntry[] {
+  return entries.filter((e) => e.kind === "directory");
+}
+
+export function countNonAsciiByKind(entries: NonAsciiEntry[]): {
+  files: number;
+  dirs: number;
+  total: number;
+} {
+  const files = filterNonAsciiFiles(entries).length;
+  return { files, dirs: entries.length - files, total: entries.length };
+}
+
 export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
   const results: NonAsciiEntry[] = [];
   const seen = new Set<string>();
