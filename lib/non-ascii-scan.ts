@@ -3,7 +3,10 @@ import * as path from "node:path";
 import { EXCLUDE_DIRS } from "./constants.ts";
 
 export function hasNonAscii(s: string): boolean {
-  return /[^\x00-\x7F]/.test(s);
+  for (let i = 0; i < s.length; i++) {
+    if (s.charCodeAt(i) > 0x7f) return true;
+  }
+  return false;
 }
 
 export function toPosix(p: string): string {
@@ -40,7 +43,10 @@ export function countNonAsciiByKind(entries: NonAsciiEntry[]): {
   dirs: number;
   total: number;
 } {
-  const files = filterNonAsciiFiles(entries).length;
+  let files = 0;
+  for (const entry of entries) {
+    if (entry.kind === "file") files++;
+  }
   return { files, dirs: entries.length - files, total: entries.length };
 }
 
@@ -65,7 +71,7 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
     });
   }
 
-  function walk(dir: string) {
+  function walk(dir: string, inNonAsciiSubtree = false) {
     let entries: fs.Dirent[];
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -77,16 +83,20 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
       if (EXCLUDE_DIRS.has(entry.name)) continue;
       const fullPath = path.join(dir, entry.name);
       const relativePath = toPosix(path.relative(cwd, fullPath));
-      const posixFullPath = toPosix(fullPath);
 
-      if (!hasNonAscii(relativePath) && !hasNonAscii(posixFullPath)) {
-        if (entry.isDirectory()) walk(fullPath);
+      const flagged =
+        inNonAsciiSubtree ||
+        hasNonAscii(relativePath) ||
+        hasNonAscii(toPosix(fullPath));
+
+      if (!flagged) {
+        if (entry.isDirectory()) walk(fullPath, false);
         continue;
       }
 
       if (entry.isDirectory()) {
         record(relativePath, "directory");
-        walk(fullPath);
+        walk(fullPath, true);
       } else if (entry.isFile()) {
         record(relativePath, "file");
       }
