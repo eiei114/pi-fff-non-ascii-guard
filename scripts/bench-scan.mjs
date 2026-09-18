@@ -2,9 +2,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const libRoot = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..", "lib");
+const libRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "lib");
 const { scanNonAsciiPaths } = await import(pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href);
 
 function buildFixture(root, { dirs = 20, filesPerDir = 50, nonAsciiDir = false } = {}) {
