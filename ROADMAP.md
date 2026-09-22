@@ -6,12 +6,12 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current release: **0.1.12** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
+Current release: **0.1.13** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
 
 ## What this extension does (shipped)
 
 - **Session-start scan** — detects non-ASCII paths when a Pi session begins.
-- **fff tool gate** — blocks `grep`, `find_files`, and `fff_multi_grep` while non-ASCII paths remain, preventing `fff-core` panics on UTF-8 byte boundaries.
+- **fff tool gate** — blocks known tools (`grep`, `find_files`, and `fff_multi_grep`) and conservatively guards unknown `fff_*` tools while non-ASCII paths remain, preventing `fff-core` panics on UTF-8 byte boundaries.
 - **`list_non_ascii_paths` tool** — list files and directories with non-ASCII path segments.
 - **`sanitize_filenames` tool** — preview or execute safe ASCII-slug renames for files (non-ASCII directories are listed for manual rename).
 - **Smart exclusions** — skips `.git`, `.obsidian`, `.pi`, `.claude`, `.scratch`, and `node_modules`.
@@ -30,7 +30,7 @@ Close the remaining `pi-extension-template` compliance gaps so every merged, pub
 
 Make the panic-prevention guarantee robust as the surrounding tool surface evolves.
 
-- Harden the fff tool gate against tool-name drift (the gated set is a hardcoded constant today).
+- ~~Harden the fff tool gate against tool-name drift~~ **shipped** — known tools remain explicit while unknown `fff_*` names are conservatively guarded.
 
 ### Month 3 — Speed & token efficiency
 
@@ -75,7 +75,7 @@ Thin, independently verifiable work items (30–90 min) derived from the phases 
 |---|---|---|---|---|---|
 | 03 | Pin GitHub Actions to commit SHAs | M1 public quality | none | — | ✅ shipped |
 | 04 | Add `version:check` CI gate | M1 public quality | none | — | ✅ shipped |
-| 05 | Harden fff tool gate against tool-name drift | M2 stabilization | patch | — | ✅ |
+| 05 | Harden fff tool gate against tool-name drift | M2 stabilization | patch | — | ✅ shipped |
 | 06 | Add startup scan timing instrumentation | M3 speed | patch | — | ✅ |
 | 07 | Auto-rename non-ASCII directories (with reference updates) | later (feature) | minor | — | ⛔ HITL |
 
@@ -83,7 +83,7 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.12**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.13**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|

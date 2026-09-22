@@ -3,7 +3,11 @@ import { Type } from "typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { formatBlockedToolReason } from "../lib/block-warning.ts";
-import { FFF_TOOL_NAMES, formatBlockedFffTools, MAX_BLOCK_LIST } from "../lib/constants.ts";
+import {
+  classifyFffToolGate,
+  formatBlockedFffTools,
+  MAX_BLOCK_LIST,
+} from "../lib/constants.ts";
 import { buildRenamePlan, formatRenamePlanReport } from "../lib/rename-plan.ts";
 import {
   countNonAsciiByKind,
@@ -21,9 +25,9 @@ function notifyNonAscii(ctx: ExtensionContext) {
   ctx.ui.notify(
     "Warning: " +
       entries.length +
-      " non-ASCII path(s) detected (fff-core may panic). " +
+      " non-ASCII path(s) detected (fff-core may panic). Known fff tools (" +
       formatBlockedFffTools() +
-      " are blocked until fixed.\n" +
+      ") and unknown fff_* tools are guarded until paths are ASCII-safe.\n" +
       formatEntryList(entries, MAX_BLOCK_LIST) +
       "\n\nLLM: call sanitize_filenames to rename files.",
     "warning"
@@ -51,19 +55,20 @@ export default function (pi: ExtensionAPI) {
         fileCount +
         " file(s), " +
         dirCount +
-        " dir(s)). fff tools " +
+        " dir(s)). Known fff tools (" +
         formatBlockedFffTools() +
-        " are blocked until sanitize_filenames fixes renamable files. Do not retry blocked fff searches.",
+        ") and unknown fff_* tools are guarded until sanitize_filenames fixes renamable files. Do not retry blocked fff searches.",
     };
   });
 
   pi.on("tool_call", async (event, ctx) => {
-    if (!FFF_TOOL_NAMES.has(event.toolName)) return;
+    const gate = classifyFffToolGate(event.toolName);
+    if (gate === null) return;
 
     const entries = getNonAsciiEntries(ctx.cwd);
     if (entries.length === 0) return;
 
-    return { block: true, reason: formatBlockedToolReason(event.toolName, entries) };
+    return { block: true, reason: formatBlockedToolReason(event.toolName, entries, gate) };
   });
 
   pi.registerTool({
