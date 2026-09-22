@@ -4,7 +4,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const { FFF_TOOL_NAMES, formatBlockedFffTools } = await import(
+const {
+  FFF_TOOL_NAMES,
+  classifyFffToolGate,
+  formatBlockedFffTools,
+} = await import(
   pathToFileURL(path.join(root, "..", "lib", "constants.ts")).href
 );
 
@@ -12,6 +16,14 @@ test("FFF_TOOL_NAMES includes grep (fff-core content search)", () => {
   assert.equal(FFF_TOOL_NAMES.has("grep"), true);
   assert.equal(FFF_TOOL_NAMES.has("find_files"), true);
   assert.equal(FFF_TOOL_NAMES.has("fff_multi_grep"), true);
+});
+
+test("classifyFffToolGate covers known, prefix, and unrelated tools", () => {
+  assert.equal(classifyFffToolGate("grep"), "known");
+  assert.equal(classifyFffToolGate("find_files"), "known");
+  assert.equal(classifyFffToolGate("fff_multi_grep"), "known");
+  assert.equal(classifyFffToolGate("fff_search"), "prefix");
+  assert.equal(classifyFffToolGate("search"), null);
 });
 
 test("formatBlockedFffTools lists all gated tools", () => {

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.13] - 2026-09-22
+
+### Added
+
+- Hardened the fff tool gate with a conservative guard for unknown `fff_*` tool names while non-ASCII paths remain.
+- Added classification and warning coverage for known, prefix-guarded, and unrelated tools.
+
+
 ## [0.1.12] - 2026-08-04
 
 ### Changed

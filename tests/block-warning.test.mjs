@@ -87,6 +87,12 @@ test("formatDetailedBlockReason caps examples at MAX_DETAILED_EXAMPLES", () => {
   assert.match(reason, /\.\.\. and 1 more/);
 });
 
+test("unknown fff_* tools get a conservative prefix warning", () => {
+  const reason = formatBlockedToolReason("fff_search", [entry("x.txt")]);
+  assert.match(reason, /unknown fff_\* tool conservatively blocked/);
+  assert.match(reason, /list_non_ascii_paths/);
+});
+
 test("formatCompactBlockReason keeps remediation hint", () => {
   const reason = formatCompactBlockReason("grep", [entry("x.txt")]);
   assert.match(reason, /list_non_ascii_paths/);
