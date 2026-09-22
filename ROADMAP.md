@@ -49,7 +49,7 @@ The extension's core guarantee is: **no fff-core-backed tool runs while a non-AS
 | `find_files` | ✅ (0.1.4) |
 | `fff_multi_grep` | ✅ (0.1.4) |
 
-Priority going forward: keep this list authoritative as Pi/fff-core evolve. The gated set (`FFF_TOOL_NAMES` in `lib/constants.ts`) is a hardcoded `Set`; a future fff-backed tool that is not added here would silently bypass the gate. Month 2 adds a drift guard so that gap is surfaced, not hidden.
+Priority going forward: keep this list authoritative as Pi/fff-core evolve. The gated set (`FFF_TOOL_NAMES` in `lib/constants.ts`) covers the tools known today, and the 0.1.13 drift guard additionally blocks unknown tool names prefixed with `fff_`. A future fff-backed tool that uses any other name still needs an explicit `FFF_TOOL_NAMES` entry, so update this table and that set together when Pi adds tools.
 
 ## Edge-case testing strategy
 
@@ -88,7 +88,7 @@ Status as of **0.1.13**. Baseline: [`pi-extension-template/Docs/pi-extension-oss
 | Area | Status | Notes |
 |---|---|---|
 | README (minimal-docs policy, badges) | ✅ | Restructured in 0.1.2; all 7 badges present (CI, Publish, npm version, npm downloads, License, Pi Package, Trusted Publishing). |
-| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.12. |
+| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.13. |
 | LICENSE (MIT) | ✅ | Present. |
 | SECURITY.md | ✅ | Added in 0.1.6, linked from README. |
 | `package.json` minimum (`files`, `pi.extensions`, metadata) | ✅ | `files` ships README, ROADMAP, CHANGELOG, LICENSE, SECURITY, `extensions`, `lib`. |
