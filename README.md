@@ -112,6 +112,7 @@ pi-fff-non-ascii-guard/
 ├── lib/                            # Scan, slug, rename-plan helpers
 ├── tests/                          # Smoke tests
 ├── scripts/
+│   ├── bench-scan.mjs              # local scanNonAsciiPaths benchmark
 │   └── check-version-bump.mjs      # PR semver/CHANGELOG guard (version:check)
 ├── .github/
 │   ├── dependabot.yml              # Weekly npm + GitHub Actions updates
@@ -140,6 +141,7 @@ npm run typecheck   # type-check all TypeScript sources
 npm test            # smoke tests
 npm run check       # typecheck + tests + npm pack --dry-run
 BASE_REF=origin/main npm run version:check  # PR-only semver/CHANGELOG guard
+node scripts/bench-scan.mjs              # compare scan performance on local fixtures
 ```
 
 ## Release
