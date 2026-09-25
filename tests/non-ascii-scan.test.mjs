@@ -48,6 +48,9 @@ test("scanNonAsciiPaths flags file and parent directory segments", () => {
     const asciiDir = path.join(tmp, "docs", "ok");
     fs.mkdirSync(asciiDir, { recursive: true });
     fs.writeFileSync(path.join(asciiDir, "readme.txt"), "ok");
+    const nonAsciiDir = path.join(tmp, "日本語", "nested");
+    fs.mkdirSync(nonAsciiDir, { recursive: true });
+    fs.writeFileSync(path.join(nonAsciiDir, "readme.txt"), "ok");
 
     const entries = scanNonAsciiPaths(tmp);
     const paths = entries.map((e) => e.relativePath);
@@ -55,7 +58,16 @@ test("scanNonAsciiPaths flags file and parent directory segments", () => {
       paths.some((p) => p.includes("SpreadsheetToJson_wrap")),
       "expected non-ASCII file path"
     );
-    assert.ok(!paths.some((p) => p.endsWith("readme.txt")));
+    assert.ok(paths.includes("日本語"), "expected non-ASCII directory path");
+    assert.ok(
+      paths.includes("日本語/nested"),
+      "expected nested directory path"
+    );
+    assert.ok(
+      paths.includes("日本語/nested/readme.txt"),
+      "expected file path under non-ASCII directory"
+    );
+    assert.ok(!paths.some((p) => p.endsWith("docs/ok/readme.txt")));
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
