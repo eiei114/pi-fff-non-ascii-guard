@@ -53,8 +53,9 @@ export function countNonAsciiByKind(entries: NonAsciiEntry[]): {
 export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
   const results: NonAsciiEntry[] = [];
   const seen = new Set<string>();
+  const cwdHasNonAscii = hasNonAscii(toPosix(cwd));
 
-  if (hasNonAscii(toPosix(cwd))) {
+  if (cwdHasNonAscii) {
     record(".", "directory");
   }
 
@@ -71,7 +72,11 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
     });
   }
 
-  function walk(dir: string, inNonAsciiSubtree = false) {
+  function walk(
+    dir: string,
+    relativeDir = "",
+    inNonAsciiSubtree = cwdHasNonAscii
+  ) {
     let entries: fs.Dirent[];
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -82,21 +87,24 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
     for (const entry of entries) {
       if (EXCLUDE_DIRS.has(entry.name)) continue;
       const fullPath = path.join(dir, entry.name);
-      const relativePath = toPosix(path.relative(cwd, fullPath));
-
-      const flagged =
-        inNonAsciiSubtree ||
-        hasNonAscii(relativePath) ||
-        hasNonAscii(toPosix(fullPath));
+      const flagged = inNonAsciiSubtree || hasNonAscii(entry.name);
 
       if (!flagged) {
-        if (entry.isDirectory()) walk(fullPath, false);
+        if (entry.isDirectory()) {
+          const childRelativeDir = relativeDir
+            ? `${relativeDir}/${entry.name}`
+            : entry.name;
+          walk(fullPath, childRelativeDir, false);
+        }
         continue;
       }
 
+      const relativePath = relativeDir
+        ? `${relativeDir}/${entry.name}`
+        : entry.name;
       if (entry.isDirectory()) {
         record(relativePath, "directory");
-        walk(fullPath, true);
+        walk(fullPath, relativePath, true);
       } else if (entry.isFile()) {
         record(relativePath, "file");
       }
