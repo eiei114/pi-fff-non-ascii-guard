@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current release: **0.1.13** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
+Current release: **0.1.14** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
 
 ## What this extension does (shipped)
 
@@ -83,7 +83,7 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.13**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.14**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|
