@@ -42,14 +42,22 @@ This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 
 ## Install
 
+For the published npm package (recommended):
+
 ```bash
-pi install git:github.com/eiei114/pi-fff-non-ascii-guard
+pi install npm:pi-fff-non-ascii-guard
 ```
 
 For project-local install:
 
 ```bash
-pi install -l git:github.com/eiei114/pi-fff-non-ascii-guard
+pi install -l npm:pi-fff-non-ascii-guard
+```
+
+To install the latest source from GitHub instead:
+
+```bash
+pi install git:github.com/eiei114/pi-fff-non-ascii-guard
 ```
 
 ## Quick start
