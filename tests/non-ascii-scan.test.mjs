@@ -14,6 +14,7 @@ const {
   filterNonAsciiFiles,
   hasNonAscii,
   isRenamableFile,
+  partitionNonAsciiEntries,
   scanNonAsciiPaths,
 } = await import(pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href);
 const { toAsciiSlug } = await import(
@@ -130,6 +131,10 @@ test("countNonAsciiByKind and filters partition scan entries", () => {
     },
   ];
 
+  assert.deepEqual(partitionNonAsciiEntries(entries), {
+    files: [entries[0], entries[2]],
+    directories: [entries[1]],
+  });
   assert.deepEqual(countNonAsciiByKind(entries), { files: 2, dirs: 1, total: 3 });
   assert.equal(filterNonAsciiFiles(entries).length, 2);
   assert.equal(filterNonAsciiDirectories(entries).length, 1);

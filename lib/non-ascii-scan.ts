@@ -28,14 +28,26 @@ export function isRenamableFile(entry: NonAsciiEntry): boolean {
   return entry.kind === "file" && hasNonAscii(entry.basename + entry.ext);
 }
 
+export function partitionNonAsciiEntries(entries: NonAsciiEntry[]): {
+  files: NonAsciiEntry[];
+  directories: NonAsciiEntry[];
+} {
+  const files: NonAsciiEntry[] = [];
+  const directories: NonAsciiEntry[] = [];
+  for (const entry of entries) {
+    (entry.kind === "file" ? files : directories).push(entry);
+  }
+  return { files, directories };
+}
+
 export function filterNonAsciiFiles(entries: NonAsciiEntry[]): NonAsciiEntry[] {
-  return entries.filter((e) => e.kind === "file");
+  return partitionNonAsciiEntries(entries).files;
 }
 
 export function filterNonAsciiDirectories(
   entries: NonAsciiEntry[]
 ): NonAsciiEntry[] {
-  return entries.filter((e) => e.kind === "directory");
+  return partitionNonAsciiEntries(entries).directories;
 }
 
 export function countNonAsciiByKind(entries: NonAsciiEntry[]): {
@@ -43,11 +55,8 @@ export function countNonAsciiByKind(entries: NonAsciiEntry[]): {
   dirs: number;
   total: number;
 } {
-  let files = 0;
-  for (const entry of entries) {
-    if (entry.kind === "file") files++;
-  }
-  return { files, dirs: entries.length - files, total: entries.length };
+  const { files, directories } = partitionNonAsciiEntries(entries);
+  return { files: files.length, dirs: directories.length, total: entries.length };
 }
 
 export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
