@@ -120,13 +120,18 @@ pi-fff-non-ascii-guard/
 ├── lib/                            # Scan, slug, rename-plan helpers
 ├── tests/                          # Smoke tests
 ├── scripts/
-│   ├── bench-scan.mjs              # local scanNonAsciiPaths benchmark
-│   └── check-version-bump.mjs      # PR semver/CHANGELOG guard (version:check)
+│   ├── bench-scan.mjs               # local scanNonAsciiPaths benchmark
+│   ├── check-version-bump.mjs       # PR semver/CHANGELOG guard (version:check)
+│   ├── pi-sdk-smoke.mjs             # actual Pi 1.1.0 host compatibility harness
+│   └── release-trigger-contract.mjs # no-release-on-merge workflow guard
+├── docs/
+│   ├── pi-sdk-compatibility.md     # verified SDK API guidance
+│   └── verification/pi-sdk-smoke.json # captured actual-host verification
 ├── .github/
 │   ├── dependabot.yml              # Weekly npm + GitHub Actions updates
 │   ├── FUNDING.yml                 # GitHub sponsor link
 │   └── workflows/
-│       ├── auto-release.yml        # Auto-tag + release on merge to main
+│       ├── auto-release.yml        # Manual tag + release dispatch on main
 │       ├── ci.yml                  # Validate on PR / push
 │       └── publish.yml             # Publish to npm on tag or release
 ├── tsconfig.json                   # TypeScript config for npm run typecheck
@@ -147,19 +152,23 @@ git clone https://github.com/eiei114/pi-fff-non-ascii-guard.git
 cd pi-fff-non-ascii-guard
 npm run typecheck   # type-check all TypeScript sources
 npm test            # smoke tests
-npm run check       # typecheck + tests + npm pack --dry-run
+npm run check       # typecheck + tests + actual Pi smoke + npm pack --dry-run
 BASE_REF=origin/main npm run version:check  # PR-only semver/CHANGELOG guard
+npm run smoke:pi    # actual pinned Pi host and native-shell compatibility checks
 node scripts/bench-scan.mjs              # compare scan performance on local fixtures
 ```
 
 ## Release
 
-Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Releases are automated:
+Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). A merge does not
+create a release or publish to npm. Releases require an explicit manual dispatch
+of the **Release (manual)** workflow from `main`:
 
 1. Bump `version` in `package.json`.
 2. Merge to `main`.
-3. The **Auto Release** workflow tags `v<version>` and creates a GitHub release.
-4. The tag triggers the **Publish** workflow, which publishes to npm with provenance.
+3. An authorized maintainer manually dispatches the release workflow on `main`.
+4. The workflow tags `v<version>`, creates a GitHub release, then explicitly
+   dispatches **Publish**, which publishes to npm with provenance.
 
 ## Security
 

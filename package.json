@@ -1,6 +1,6 @@
 {
   "name": "pi-fff-non-ascii-guard",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Pi extension that detects and renames non-ASCII filenames before fff-core can panic on UTF-8 byte boundaries.",
   "type": "module",
   "keywords": [
@@ -32,7 +32,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "check": "npm run typecheck && npm test && npm pack --dry-run",
+    "check": "npm run typecheck && npm test && npm run smoke:pi && npm pack --dry-run",
+    "smoke:pi": "node scripts/pi-sdk-smoke.mjs",
     "version:check": "node scripts/check-version-bump.mjs"
   },
   "publishConfig": {
@@ -48,7 +49,12 @@
     "typebox": "*"
   },
   "devDependencies": {
+    "@earendil-works/pi-agent-core": "1.1.0",
+    "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0",
+    "@earendil-works/pi-tui": "1.1.0",
     "@types/node": "^24.13.1",
+    "typebox": "1.3.27",
     "typescript": "^6.0.3"
   }
 }
