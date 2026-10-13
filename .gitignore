@@ -2,3 +2,4 @@
 .pi/
 .DS_Store
 *.log
+.tmp/

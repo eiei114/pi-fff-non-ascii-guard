@@ -10,7 +10,9 @@ import {
 } from "./pi-sdk-smoke-contract.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const reportPath = resolve(root, "docs/verification/pi-sdk-smoke.json");
+const reportPath = process.argv.includes("--update-curated-report")
+  ? resolve(root, "docs/verification/pi-sdk-smoke.json")
+  : resolve(root, ".tmp/pi-sdk-smoke.json");
 const extensionPath = resolve(root, "extensions/pi-fff-non-ascii-guard.ts");
 const providerPath = resolve(root, "tests/fixtures/pi-sdk-smoke-provider.mjs");
 const probeTimeoutMs = 15_000;
