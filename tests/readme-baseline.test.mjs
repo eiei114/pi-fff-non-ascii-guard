@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -34,23 +34,39 @@ test("README Development section documents version:check CI guard", () => {
   );
 });
 
-test("README package contents lists developer tooling paths", () => {
+test("README package contents lists all npm-packaged files, not development tooling", () => {
   const treeMatch = readme.match(/^## Package contents\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
   assert.ok(treeMatch, "README missing Package contents section");
-  const tree = treeMatch[1];
-  const toolingEntries = [
-    { parent: "scripts/", name: "check-version-bump.mjs" },
-    { parent: ".github/", name: "dependabot.yml" },
-    { parent: ".github/", name: "FUNDING.yml" },
-    { parent: null, name: "tsconfig.json" },
-  ];
-  for (const { parent, name } of toolingEntries) {
+  const codeBlock = treeMatch[1].match(/```\r?\n([\s\S]*?)\r?\n```/);
+  assert.ok(codeBlock, "README package contents missing its file tree");
+  const tree = codeBlock[1];
+
+  function filesUnder(entry) {
+    const absolute = path.join(repoRoot, entry);
+    if (!statSync(absolute).isDirectory()) return [entry];
+    return readdirSync(absolute, { withFileTypes: true }).flatMap((child) => {
+      const childPath = `${entry}/${child.name}`;
+      return child.isDirectory() ? filesUnder(childPath) : [childPath];
+    });
+  }
+
+  const packagedFiles = new Set([
+    "package.json",
+    ...(pkg.files ?? []).flatMap((entry) => filesUnder(entry.replace(/^\.\//, ""))),
+  ]);
+  for (const file of packagedFiles) {
+    const parent = path.posix.dirname(file);
+    const name = path.posix.basename(file);
     assert.ok(tree.includes(name), `README package contents tree missing "${name}"`);
-    if (parent) {
+    if (parent !== ".") {
       assert.ok(
-        tree.includes(parent),
-        `README package contents tree missing parent directory "${parent}" for "${name}"`,
+        tree.includes(`${parent}/`),
+        `README package contents tree missing parent directory "${parent}/" for "${name}"`,
       );
     }
+  }
+
+  for (const excluded of ["tests/", "scripts/", "docs/", ".github/", "tsconfig.json"]) {
+    assert.ok(!tree.includes(excluded), `README package contents tree includes excluded "${excluded}"`);
   }
 });

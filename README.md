@@ -113,34 +113,27 @@ Apply mode returns a list of completed renames and any errors.
 
 ## Package contents
 
+The npm package contains the files below; development tooling such as `tests/`,
+`scripts/`, and `docs/` remains in the repository but is not included in the
+published tarball.
+
 ```
 pi-fff-non-ascii-guard/
-├── extensions/
-│   └── pi-fff-non-ascii-guard.ts   # Extension entry
-├── lib/                            # Scan, slug, rename-plan helpers
-├── tests/                          # Smoke tests
-├── scripts/
-│   ├── bench-scan.mjs               # local scanNonAsciiPaths benchmark
-│   ├── check-version-bump.mjs       # PR semver/CHANGELOG guard (version:check)
-│   ├── pi-sdk-smoke.mjs             # actual Pi 1.1.0 host compatibility harness
-│   └── release-trigger-contract.mjs # no-release-on-merge workflow guard
-├── docs/
-│   ├── pi-sdk-compatibility.md     # verified SDK API guidance
-│   └── verification/pi-sdk-smoke.json # captured actual-host verification
-├── .github/
-│   ├── dependabot.yml              # Weekly npm + GitHub Actions updates
-│   ├── FUNDING.yml                 # GitHub sponsor link
-│   └── workflows/
-│       ├── auto-release.yml        # Manual tag + release dispatch on main
-│       ├── ci.yml                  # Validate on PR / push
-│       └── publish.yml             # Publish to npm on tag or release
-├── tsconfig.json                   # TypeScript config for npm run typecheck
 ├── CHANGELOG.md
-├── ROADMAP.md                      # Maintenance direction and seeds
-├── LICENSE                         # MIT
-├── SECURITY.md                     # Vulnerability reporting
-├── package.json
-└── README.md
+├── LICENSE
+├── README.md
+├── ROADMAP.md
+├── SECURITY.md
+├── extensions/
+│   └── pi-fff-non-ascii-guard.ts
+├── lib/
+│   ├── ascii-slug.ts
+│   ├── block-warning.ts
+│   ├── constants.ts
+│   ├── non-ascii-scan.ts
+│   ├── rename-plan.ts
+│   └── scan-cache.ts
+└── package.json
 ```
 
 ## Development

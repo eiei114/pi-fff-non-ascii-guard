@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.16] - 2026-10-15
+
+### Changed
+
+- Correct the README package contents example to match the npm tarball.
+
 ## [0.1.15] - 2026-10-12
 
 ### Changed
