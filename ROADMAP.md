@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current release: **0.1.14** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard).
+Current release: **0.1.15** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not yet published: merging this PR does not publish; run the manual Release workflow to tag and publish.
 
 ## What this extension does (shipped)
 
@@ -83,7 +83,7 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.14**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.15**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|
@@ -95,7 +95,7 @@ Status as of **0.1.14**. Baseline: [`pi-extension-template/Docs/pi-extension-oss
 | CI workflow (`npm run check`) | ✅ | `ci.yml` runs typecheck + test + `npm pack --dry-run`. |
 | `typecheck` script | ✅ | Added in 0.1.6. |
 | npm publish (Trusted Publishing / provenance, no token) | ✅ | `publish.yml` uses OIDC (`id-token: write`), no `NPM_TOKEN`. |
-| Release handoff (auto-release → publish) | ✅ | `auto-release.yml` dispatches `publish.yml` after tag (fixed in 0.1.3). |
+| Release handoff (manual release → publish) | ✅ | Only an explicit main-branch dispatch creates a tag/release and invokes `publish.yml`; merges do not release. |
 | GitHub Actions pinned to SHAs | ✅ | `ci.yml`, `auto-release.yml`, and `publish.yml` pin `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
 | `version:check` CI gate | ✅ | `ci.yml` runs `npm run version:check` on pull requests (seed 04). |
 | Resource-collision / template-generic naming | ✅ | Package and tool names are `pi-fff-non-ascii-guard`-specific. |
