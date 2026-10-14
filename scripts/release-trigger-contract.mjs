@@ -10,7 +10,17 @@ function triggerBlock(content) {
   return block;
 }
 
+// Strip YAML/shell comments so a commented-out guard cannot satisfy a check.
+function activeLines(content) {
+  return content
+    .split(/\r?\n/)
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n");
+}
+
 export function assertReleaseTriggerContract(release, publish) {
+  release = activeLines(release);
+  publish = activeLines(publish);
   const manual = triggerBlock(release);
   if (manual.join("\n") !== "  workflow_dispatch:") {
     throw new Error("Release must be explicit workflow_dispatch only");

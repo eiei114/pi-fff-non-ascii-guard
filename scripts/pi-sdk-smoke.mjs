@@ -136,6 +136,14 @@ function createRpcHost({ cwd, agentDir, mode }) {
 
   child.stdout.on("data", (chunk) => appendOutput("stdout", chunk));
   child.stderr.on("data", (chunk) => appendOutput("stderr", chunk));
+  // The Pi host can exit between the `closed` check and the write, which emits
+  // EPIPE on child.stdin. Without a listener that becomes an unhandled error and
+  // the probe would hang instead of failing the case.
+  child.stdin.on("error", (error) => {
+    protocolErrors.push(`Pi RPC stdin error: ${error?.message ?? String(error)}`);
+    closed = true;
+    failWaiters(new Error(`Pi RPC stdin error: ${error?.message ?? String(error)}`));
+  });
   const closePromise = new Promise((resolveClose) => {
     child.once("close", (code, closeSignal) => {
       if (stdoutBuffer.trim()) recordLine(stdoutBuffer);
