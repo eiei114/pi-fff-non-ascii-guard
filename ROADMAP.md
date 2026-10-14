@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Next release (prepared, not yet published): **0.1.15**. Latest published: npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Merging this PR does not publish; run the manual Release workflow to tag and publish.
+Current release: **0.1.15** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not yet published: merging this PR does not publish; run the manual Release workflow to tag and publish.
 
 ## What this extension does (shipped)
 
