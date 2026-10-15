@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.17] - 2026-10-16
+
+### Changed
+
+- Pin Pi SDK 1.2.0 for development and verify the extension against the real Pi host.
+
 ## [0.1.16] - 2026-10-15
 
 ### Changed

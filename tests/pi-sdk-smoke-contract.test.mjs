@@ -32,7 +32,7 @@ const blockedGrep = {
 
 test("smoke contract pins the frozen SDK and parses LF/CRLF JSON lines", () => {
   assert.equal(VERIFICATION_CONTRACT, "pi-sdk-behavior-v2");
-  assert.deepEqual(Object.values(SDK_VERSIONS), ["1.1.0", "1.1.0", "1.1.0", "1.1.0"]);
+  assert.deepEqual(Object.values(SDK_VERSIONS), ["1.2.0", "1.2.0", "1.2.0", "1.2.0"]);
   const response = { type: "response", command: "prompt", success: true };
   assert.deepEqual(parseJsonLines(`not-json\r\n${JSON.stringify(response)}\n\n`), [response]);
 });
@@ -95,13 +95,13 @@ test("reload requires second-host registration, feature response, and both actua
 
 test("native shell must return the exact pinned CLI version and exit cleanly", () => {
   assert.equal(behaviorAssertions("host_shell", {
-    exitCode: 0, stdout: "1.1.0\r\n", stderr: "", expectedVersion: "1.1.0", shellName: "Windows PowerShell",
+    exitCode: 0, stdout: "1.2.0\r\n", stderr: "", expectedVersion: "1.2.0", shellName: "Windows PowerShell",
   })[0].passed, true);
   for (const [stdout, stderr, exitCode] of [
-    ["", "", 0], ["1.1.0-extra", "", 0], ["1.1.0", "error", 0], ["1.1.0", "", 1],
+    ["", "", 0], ["1.2.0-extra", "", 0], ["1.2.0", "error", 0], ["1.2.0", "", 1],
   ]) {
     assert.equal(behaviorAssertions("host_shell", {
-      exitCode, stdout, stderr, expectedVersion: "1.1.0", shellName: "Windows PowerShell",
+      exitCode, stdout, stderr, expectedVersion: "1.2.0", shellName: "Windows PowerShell",
     })[0].passed, false);
   }
 });

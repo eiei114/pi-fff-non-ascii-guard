@@ -328,7 +328,7 @@ function createSuccessfulReport(cases) {
     verification_contract: VERIFICATION_CONTRACT,
     sdk_versions: packageVersions,
     platform: process.platform,
-    model_inference: "offline deterministic faux provider; Pi 1.1.0 host, extension loader, lifecycle and feature paths are real",
+    model_inference: "offline deterministic faux provider; Pi 1.2.0 host, extension loader, lifecycle and feature paths are real",
     unhandled_errors: unhandledErrors,
     extension_load_errors: extensionLoadErrors,
     cases: cases.map(({ runtimeErrors: _runtimeErrors, hostExitCodes: _hostExitCodes,
