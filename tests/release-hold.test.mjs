@@ -10,8 +10,16 @@ const workflowsDir = path.join(repoRoot, ".github", "workflows");
 
 function topLevelTriggers(source) {
   const lines = source.split(/\r?\n/);
-  const start = lines.findIndex((line) => line === "on:");
+  const start = lines.findIndex((line) => /^on:\s*/.test(line));
   if (start < 0) return [];
+
+  const inlineValue = lines[start].replace(/^on:\s*/, "").replace(/\s+#.*$/, "").trim();
+  if (inlineValue) {
+    const values = inlineValue.startsWith("[") && inlineValue.endsWith("]")
+      ? inlineValue.slice(1, -1).split(",")
+      : [inlineValue];
+    return values.map((value) => value.trim().replace(/^(['"])(.*?)\1$/, "$2")).filter(Boolean);
+  }
 
   const triggers = [];
   for (const line of lines.slice(start + 1)) {
@@ -28,6 +36,7 @@ function assertNoReleaseCapabilities(name, source) {
   assert.ok(!triggers.includes("release"), `${name} must not contain a GitHub release trigger`);
 
   const forbidden = [
+    [/^\s*permissions\s*:\s*write-all\s*(?:#.*)?$/m, "write-all permissions"],
     [/^\s*(?:actions|contents)\s*:\s*write\s*$/m, "write-enabled GitHub token"],
     [/^\s*id-token\s*:\s*write\s*$/m, "OIDC token permission"],
     [/\bnpm\s+publish\b/i, "npm publication command"],
@@ -99,5 +108,20 @@ jobs:
   assert.throws(
     () => assertNoReleaseCapabilities("former publish.yml", publishWithoutDispatchOrOidc),
     /npm publication command/,
+  );
+});
+
+test("inline workflow triggers and write-all permissions fail the hold contract", () => {
+  assert.throws(
+    () => assertNoReleaseCapabilities("inline scalar trigger", "on: workflow_dispatch\npermissions:\n  contents: read\n"),
+    /workflow_dispatch trigger/,
+  );
+  assert.throws(
+    () => assertNoReleaseCapabilities("inline list trigger", "on: [push, workflow_dispatch]\npermissions:\n  contents: read\n"),
+    /workflow_dispatch trigger/,
+  );
+  assert.throws(
+    () => assertNoReleaseCapabilities("write-all permissions", "on:\n  push:\n    branches: [main]\npermissions: write-all\njobs:\n  validate:\n    runs-on: ubuntu-latest\n"),
+    /write-all permissions/,
   );
 });
