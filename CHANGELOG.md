@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.18] - 2026-10-16
+
+### Changed
+
+- Disable release and npm publication workflows until a trusted, protected authorization boundary is established.
+
 ## [0.1.17] - 2026-10-16
 
 ### Changed
