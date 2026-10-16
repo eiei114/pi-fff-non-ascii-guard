@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current release: **0.1.17** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not yet published: merging this PR does not publish; run the manual Release workflow to tag and publish.
+Current package version: **0.1.18** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not published. Release and npm publication workflows are disabled; merging does not release or publish. Human-owned publication remains on hold until maintainers establish and verify a trusted, protected authorization boundary.
 
 ## What this extension does (shipped)
 
@@ -23,7 +23,7 @@ Current release: **0.1.17** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs
 
 Close the remaining `pi-extension-template` compliance gaps so every merged, publishable change can actually reach npm and the supply chain is hardened.
 
-- ~~Pin third-party GitHub Actions to commit SHAs~~ **shipped** — `ci.yml`, `auto-release.yml`, and `publish.yml` pin `actions/checkout` and `actions/setup-node` to commit SHAs.
+- ~~Pin third-party GitHub Actions to commit SHAs~~ **shipped** — the active `ci.yml` pins `actions/checkout` and `actions/setup-node` to commit SHAs.
 - ~~Add a `version:check` CI gate~~ **shipped** — `ci.yml` runs `npm run version:check` on pull requests.
 
 ### Month 2 — Stabilization
@@ -83,20 +83,20 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.17**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.18**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|
-| README (minimal-docs policy, badges) | ✅ | Restructured in 0.1.2; all 7 badges present (CI, Publish, npm version, npm downloads, License, Pi Package, Trusted Publishing). |
-| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.13. |
+| README (minimal-docs policy, badges) | ✅ | Restructured in 0.1.2; the five current badges cover CI, npm version, npm downloads, License, and Pi Package. |
+| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.18. |
 | LICENSE (MIT) | ✅ | Present. |
 | SECURITY.md | ✅ | Added in 0.1.6, linked from README. |
 | `package.json` minimum (`files`, `pi.extensions`, metadata) | ✅ | `files` ships README, ROADMAP, CHANGELOG, LICENSE, SECURITY, `extensions`, `lib`. |
 | CI workflow (`npm run check`) | ✅ | `ci.yml` runs typecheck + test + `npm pack --dry-run`. |
 | `typecheck` script | ✅ | Added in 0.1.6. |
-| npm publish (Trusted Publishing / provenance, no token) | ✅ | `publish.yml` uses OIDC (`id-token: write`), no `NPM_TOKEN`. |
-| Release handoff (manual release → publish) | ✅ | Only an explicit main-branch dispatch creates a tag/release and invokes `publish.yml`; merges do not release. |
-| GitHub Actions pinned to SHAs | ✅ | `ci.yml`, `auto-release.yml`, and `publish.yml` pin `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
+| npm publish (Trusted Publishing / provenance, no token) | ⏸️ on hold | Publication workflow removed until maintainers establish and verify a trusted, protected authorization boundary. |
+| Release handoff (manual release → publish) | ⏸️ on hold | Release and publish workflows are disabled; merges do not tag, release, publish, or dispatch publication. |
+| GitHub Actions pinned to SHAs | ✅ | The active `ci.yml` pins `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
 | `version:check` CI gate | ✅ | `ci.yml` runs `npm run version:check` on pull requests (seed 04). |
 | Resource-collision / template-generic naming | ✅ | Package and tool names are `pi-fff-non-ascii-guard`-specific. |
 

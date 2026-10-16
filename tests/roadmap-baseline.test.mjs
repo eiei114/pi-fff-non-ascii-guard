@@ -10,14 +10,12 @@ const repoRoot = path.join(root, "..");
 const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 const roadmap = readFileSync(path.join(repoRoot, "ROADMAP.md"), "utf8");
 const ci = readFileSync(path.join(repoRoot, ".github", "workflows", "ci.yml"), "utf8");
-const autoRelease = readFileSync(path.join(repoRoot, ".github", "workflows", "auto-release.yml"), "utf8");
-const publish = readFileSync(path.join(repoRoot, ".github", "workflows", "publish.yml"), "utf8");
 
-const workflowFiles = [ci, autoRelease, publish];
+const workflowFiles = [ci];
 const selectedActionRef = /uses:\s*actions\/(checkout|setup-node)@([^\s#]+)/g;
 
-test("ROADMAP Current release matches package.json version", () => {
-  const expected = `Current release: **${pkg.version}**`;
+test("ROADMAP current package version matches package.json", () => {
+  const expected = `Current package version: **${pkg.version}**`;
   assert.ok(roadmap.includes(expected), `ROADMAP missing "${expected}"`);
 });
 

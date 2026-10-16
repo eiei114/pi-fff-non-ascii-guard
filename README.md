@@ -3,12 +3,10 @@
 [![Join dotfield.xyz on Discord](https://img.shields.io/badge/Join%20dotfield.xyz%20on%20Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/4945dXZVW5)
 
 [![CI](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/ci.yml)
-[![Publish](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/publish.yml/badge.svg)](https://github.com/eiei114/pi-fff-non-ascii-guard/actions/workflows/publish.yml)
 [![npm version](https://img.shields.io/npm/v/pi-fff-non-ascii-guard)](https://www.npmjs.com/package/pi-fff-non-ascii-guard)
 [![npm downloads](https://img.shields.io/npm/dw/pi-fff-non-ascii-guard)](https://www.npmjs.com/package/pi-fff-non-ascii-guard)
 [![License: MIT](https://img.shields.io/github/license/eiei114/pi-fff-non-ascii-guard)](https://github.com/eiei114/pi-fff-non-ascii-guard/blob/main/LICENSE)
 ![Pi Package](https://img.shields.io/badge/Pi-Package-blue)
-[![Trusted Publishing](https://img.shields.io/badge/npm-provenance-yellow)](https://docs.npmjs.com/generating-provenance-statements)
 <a href="https://buymeacoffee.com/ekawano114m"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60"></a>
 
 Pi extension that prevents `fff-core` panics caused by non-ASCII filenames.
@@ -153,15 +151,17 @@ node scripts/bench-scan.mjs              # compare scan performance on local fix
 
 ## Release
 
-Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). A merge does not
-create a release or publish to npm. Releases require an explicit manual dispatch
-of the **Release (manual)** workflow from `main`:
+Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Automated
+release and npm publication are currently disabled; the release and publish
+workflows have been removed. Merging does not create tags or GitHub releases,
+publish to npm, or dispatch a publication workflow.
 
-1. Bump `version` in `package.json`.
-2. Merge to `main`.
-3. An authorized maintainer manually dispatches the release workflow on `main`.
-4. The workflow tags `v<version>`, creates a GitHub release, then explicitly
-   dispatches **Publish**, which publishes to npm with provenance.
+Publication remains human-owned and is on hold until repository maintainers
+establish and verify a trusted, protected release authorization boundary. At the
+time this hold was introduced, GitHub reported no branch protection or rulesets
+for `main`, and no Actions environments. This PR does not configure external
+protection or enable publication. Do not restore privileged release workflows
+based only on a `github.ref` condition in branch-editable workflow code.
 
 ## Security
 
