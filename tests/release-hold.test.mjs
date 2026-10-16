@@ -15,6 +15,9 @@ function topLevelTriggers(source) {
 
   const inlineValue = lines[start].replace(/^on:\s*/, "").replace(/\s+#.*$/, "").trim();
   if (inlineValue) {
+    if (inlineValue.startsWith("{")) {
+      throw new Error("unsupported inline flow mapping for workflow triggers");
+    }
     const values = inlineValue.startsWith("[") && inlineValue.endsWith("]")
       ? inlineValue.slice(1, -1).split(",")
       : [inlineValue];
@@ -34,6 +37,9 @@ function assertNoReleaseCapabilities(name, source) {
   const triggers = topLevelTriggers(source);
   assert.ok(!triggers.includes("workflow_dispatch"), `${name} must not contain a workflow_dispatch trigger`);
   assert.ok(!triggers.includes("release"), `${name} must not contain a GitHub release trigger`);
+  if (/^\s*permissions\s*:\s*\{/m.test(source)) {
+    throw new Error(`${name} uses unsupported inline flow mapping for permissions`);
+  }
 
   const forbidden = [
     [/^\s*permissions\s*:\s*write-all\s*(?:#.*)?$/m, "write-all permissions"],
@@ -123,5 +129,25 @@ test("inline workflow triggers and write-all permissions fail the hold contract"
   assert.throws(
     () => assertNoReleaseCapabilities("write-all permissions", "on:\n  push:\n    branches: [main]\npermissions: write-all\njobs:\n  validate:\n    runs-on: ubuntu-latest\n"),
     /write-all permissions/,
+  );
+});
+
+test("inline flow-mapping workflow triggers fail closed", () => {
+  assert.throws(
+    () => assertNoReleaseCapabilities(
+      "inline flow trigger",
+      "on: {push: {}, workflow_dispatch: {}}\npermissions:\n  contents: read\n",
+    ),
+    /unsupported inline flow mapping for workflow triggers/,
+  );
+});
+
+test("inline flow-mapping permissions fail closed", () => {
+  assert.throws(
+    () => assertNoReleaseCapabilities(
+      "inline flow permissions",
+      "on:\n  push:\npermissions: {contents: write}\n",
+    ),
+    /unsupported inline flow mapping for permissions/,
   );
 });
