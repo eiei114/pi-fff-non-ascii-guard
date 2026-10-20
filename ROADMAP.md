@@ -95,7 +95,7 @@ Status as of **0.1.18**. Baseline: [`pi-extension-template/Docs/pi-extension-oss
 | CI workflow (`npm run check`) | ✅ | `ci.yml` runs typecheck + test + `npm pack --dry-run`. |
 | `typecheck` script | ✅ | Added in 0.1.6. |
 | npm publish (Trusted Publishing / provenance, no token) | ⏸️ on hold | Publication workflow removed until maintainers establish and verify a trusted, protected authorization boundary. |
-| Release handoff (manual release → publish) | ⏸️ on hold | Release and publish workflows are disabled; merges do not tag, release, publish, or dispatch publication. |
+| Release handoff (manual release → publish) | ✅ | Dispatch-only `auto-release.yml` bound to the protected `release` environment (branch policy: `main` only) with a required `release_authorized` input; merges do not tag, release, publish, or dispatch publication. |
 | GitHub Actions pinned to SHAs | ✅ | The active `ci.yml` pins `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
 | `version:check` CI gate | ✅ | `ci.yml` runs `npm run version:check` on pull requests (seed 04). |
 | Resource-collision / template-generic naming | ✅ | Package and tool names are `pi-fff-non-ascii-guard`-specific. |

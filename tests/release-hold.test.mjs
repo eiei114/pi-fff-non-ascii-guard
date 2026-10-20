@@ -8,6 +8,10 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(root, "..");
 const workflowsDir = path.join(repoRoot, ".github", "workflows");
 
+function workflow(name) {
+  return readFileSync(path.join(workflowsDir, name), "utf8");
+}
+
 function topLevelTriggers(source) {
   const lines = source.split(/\r?\n/);
   const start = lines.findIndex((line) => /^on:\s*/.test(line));
@@ -33,45 +37,111 @@ function topLevelTriggers(source) {
   return triggers;
 }
 
-function assertNoReleaseCapabilities(name, source) {
+// ---------------------------------------------------------------------------
+// Release authorization contract
+//
+// Publication must never be a merge side effect. Each barrier below is required
+// independently: removing any one of them reopens an unauthenticated publish
+// path, so every assertion fails closed on its own.
+// ---------------------------------------------------------------------------
+
+function assertProtectedRelease(name, source) {
   const triggers = topLevelTriggers(source);
-  assert.ok(!triggers.includes("workflow_dispatch"), `${name} must not contain a workflow_dispatch trigger`);
-  assert.ok(!triggers.includes("release"), `${name} must not contain a GitHub release trigger`);
-  if (/^\s*permissions\s*:\s*\{/m.test(source)) {
-    throw new Error(`${name} uses unsupported inline flow mapping for permissions`);
-  }
 
-  const forbidden = [
-    [/^\s*permissions\s*:\s*write-all\s*(?:#.*)?$/m, "write-all permissions"],
-    [/^\s*(?:actions|contents)\s*:\s*write\s*$/m, "write-enabled GitHub token"],
-    [/^\s*id-token\s*:\s*write\s*$/m, "OIDC token permission"],
-    [/\bnpm\s+publish\b/i, "npm publication command"],
-    [/\bgh\s+release\s+create\b/i, "GitHub release command"],
-    [/\bgh\s+workflow\s+run\b/i, "workflow dispatch command"],
-  ];
+  // Barrier 1: dispatch-only. A push or release trigger publishes on merge.
+  assert.deepEqual(
+    triggers,
+    ["workflow_dispatch"],
+    `${name} must be dispatch-only so merging does not publish`,
+  );
 
-  for (const [pattern, description] of forbidden) {
-    assert.doesNotMatch(source, pattern, `${name} must not contain ${description}`);
-  }
+  // Barrier 2: an explicit authorization input, required and defaulting to false.
+  assert.match(
+    source,
+    /^      release_authorized:\r?\n        description: .+\r?\n        required: true\r?\n        type: boolean\r?\n        default: false$/m,
+    `${name} must require an explicit release_authorized input that defaults to false`,
+  );
+
+  // Barrier 3: the job is gated on the Authorization input and the default branch.
+  const jobGuard = source.match(/^  release:\r?\n(?:    .+\r?\n)*?    if: (.+)$/m);
+  assert.ok(jobGuard, `${name} must guard the release job with an if condition`);
+  assert.match(jobGuard[1], /inputs\.release_authorized == true/, `${name} release job must require release_authorized`);
+  assert.match(jobGuard[1], /refs\/heads\/main/, `${name} release job must require the default branch`);
+
+  // Barrier 4: a protected environment, so a branch-editable condition alone is
+  // never sufficient. The environment also carries the branch policy in GitHub.
+  assert.match(
+    source,
+    /^    environment:\r?\n      name: release$/m,
+    `${name} must bind the release job to the protected release environment`,
+  );
 }
 
-test("active workflows have no release or publication path while external authorization is unavailable", () => {
-  const files = readdirSync(workflowsDir).filter((name) => /\.ya?ml$/i.test(name));
-  assert.deepEqual(files, ["ci.yml"], "only the non-publishing CI workflow should be active");
+function assertPublishContract(name, source) {
+  const triggers = topLevelTriggers(source);
 
-  for (const file of files) {
-    assertNoReleaseCapabilities(file, readFileSync(path.join(workflowsDir, file), "utf8"));
-  }
+  // The publish workflow may react to an already-authorized tag or release, but
+  // never to a plain branch push.
+  assert.ok(!triggers.includes("push") || !/^\s{2}push:\r?\n(\s{4}.+\r?\n)*?\s{4}branches:/m.test(source),
+    `${name} must not publish on a branch push`);
+  assert.match(source, /id-token: write/, `${name} must use OIDC for Trusted Publishing`);
+  assert.match(source, /npm publish --access public/, `${name} must publish with public access`);
+  assert.match(source, /Skip already published version/, `${name} must skip an already published version`);
+}
 
-  const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
-  const roadmap = readFileSync(path.join(repoRoot, "ROADMAP.md"), "utf8");
-  assert.match(readme, /Automated\s+release and npm publication are currently disabled/i);
-  assert.match(readme, /trusted, protected release authorization boundary/i);
-  assert.match(roadmap, /Release and publish workflows are disabled/i);
+test("the release workflow is dispatch-only, authorized, and environment-protected", () => {
+  assertProtectedRelease("auto-release.yml", workflow("auto-release.yml"));
 });
 
-test("the former branch-dispatch release and OIDC publish entry points fail the hold contract", () => {
-  const formerRelease = `
+test("the publish workflow uses OIDC and never triggers on a branch push", () => {
+  assertPublishContract("publish.yml", workflow("publish.yml"));
+});
+
+test("only the release and publish workflows may carry privileged capabilities", () => {
+  const files = readdirSync(workflowsDir).filter((name) => /\.ya?ml$/i.test(name)).sort();
+  assert.deepEqual(files, ["auto-release.yml", "ci.yml", "publish.yml"]);
+
+  const ci = workflow("ci.yml");
+  assert.doesNotMatch(ci, /\bnpm\s+publish\b/i, "ci.yml must not publish");
+  assert.doesNotMatch(ci, /\bgh\s+release\s+create\b/i, "ci.yml must not create releases");
+  assert.doesNotMatch(ci, /\bid-token:\s*write/i, "ci.yml must not request an OIDC token");
+});
+
+test("the branch-dispatch release shape fails the contract", () => {
+  const unprotected = `
+name: Auto Release
+on:
+  workflow_dispatch:
+    inputs:
+      release_authorized:
+        description: "Confirm."
+        required: true
+        type: boolean
+        default: false
+permissions:
+  actions: write
+  contents: write
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main' && inputs.release_authorized == true
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh release create "$TAG"
+`;
+
+  // Missing the protected environment is the exact defect DOT-2387/DOT-2561 held.
+  assert.throws(() => assertProtectedRelease("unprotected", unprotected), /protected release environment/);
+
+  const pushTriggered = unprotected.replace(
+    "on:\n  workflow_dispatch:\n    inputs:",
+    "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n    inputs:",
+  );
+  assert.throws(() => assertProtectedRelease("push-triggered", pushTriggered), /dispatch-only/);
+});
+
+test("a release job without the authorization input fails the contract", () => {
+  const noInput = `
+name: Auto Release
 on:
   workflow_dispatch:
 permissions:
@@ -79,16 +149,22 @@ permissions:
   contents: write
 jobs:
   release:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: release
     steps:
       - run: gh release create "$TAG"
-      - run: gh workflow run publish.yml --ref "$TAG"
 `;
-  const formerPublish = `
+  assert.throws(() => assertProtectedRelease("no-input", noInput), /release_authorized/);
+});
+
+test("publishing on a branch push fails the publish contract", () => {
+  const branchPush = `
+name: Publish to npm
 on:
   push:
-    tags: ['v*.*.*']
-  workflow_dispatch:
+    branches: [main]
 permissions:
   contents: read
   id-token: write
@@ -97,57 +173,10 @@ jobs:
     steps:
       - run: npm publish --access public
 `;
-
-  assert.throws(() => assertNoReleaseCapabilities("former auto-release.yml", formerRelease), /workflow_dispatch trigger/);
-  assert.throws(
-    () => assertNoReleaseCapabilities("former auto-release.yml", formerRelease.replace("  workflow_dispatch:\n", "")),
-    /write-enabled GitHub token/,
-  );
-  assert.throws(() => assertNoReleaseCapabilities("former publish.yml", formerPublish), /workflow_dispatch trigger/);
-
-  const publishWithoutDispatch = formerPublish.replace("  workflow_dispatch:\n", "");
-  assert.throws(
-    () => assertNoReleaseCapabilities("former publish.yml", publishWithoutDispatch),
-    /OIDC token permission/,
-  );
-  const publishWithoutDispatchOrOidc = publishWithoutDispatch.replace("  id-token: write\n", "");
-  assert.throws(
-    () => assertNoReleaseCapabilities("former publish.yml", publishWithoutDispatchOrOidc),
-    /npm publication command/,
-  );
+  assert.throws(() => assertPublishContract("branch-push", branchPush), /must not publish on a branch push/);
 });
 
-test("inline workflow triggers and write-all permissions fail the hold contract", () => {
-  assert.throws(
-    () => assertNoReleaseCapabilities("inline scalar trigger", "on: workflow_dispatch\npermissions:\n  contents: read\n"),
-    /workflow_dispatch trigger/,
-  );
-  assert.throws(
-    () => assertNoReleaseCapabilities("inline list trigger", "on: [push, workflow_dispatch]\npermissions:\n  contents: read\n"),
-    /workflow_dispatch trigger/,
-  );
-  assert.throws(
-    () => assertNoReleaseCapabilities("write-all permissions", "on:\n  push:\n    branches: [main]\npermissions: write-all\njobs:\n  validate:\n    runs-on: ubuntu-latest\n"),
-    /write-all permissions/,
-  );
-});
-
-test("inline flow-mapping workflow triggers fail closed", () => {
-  assert.throws(
-    () => assertNoReleaseCapabilities(
-      "inline flow trigger",
-      "on: {push: {}, workflow_dispatch: {}}\npermissions:\n  contents: read\n",
-    ),
-    /unsupported inline flow mapping for workflow triggers/,
-  );
-});
-
-test("inline flow-mapping permissions fail closed", () => {
-  assert.throws(
-    () => assertNoReleaseCapabilities(
-      "inline flow permissions",
-      "on:\n  push:\npermissions: {contents: write}\n",
-    ),
-    /unsupported inline flow mapping for permissions/,
-  );
+test("the hold is documented where a maintainer will look", () => {
+  const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
+  assert.match(readme, /release_authorized|release environment/i);
 });
