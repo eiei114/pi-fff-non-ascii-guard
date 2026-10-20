@@ -6,7 +6,7 @@
 >
 > **Constraints:** existing commands, tools, and main UX stay unless a compatibility fix is required. Secrets, publish, permissions, and production actions stay human-owned. Each seed is 30–90 minutes, independently verifiable, and carries a version-bump classification.
 
-Current package version: **0.1.18** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not published. Release and npm publication workflows are disabled; merging does not release or publish. Human-owned publication remains on hold until maintainers establish and verify a trusted, protected authorization boundary.
+Current package version: **0.1.19** — npm [`pi-fff-non-ascii-guard`](https://www.npmjs.com/package/pi-fff-non-ascii-guard). Prepared, not published. Merging does not release or publish; publication requires an explicit `release_authorized` dispatch into the protected `release` environment.
 
 ## What this extension does (shipped)
 
@@ -83,19 +83,19 @@ Suggested order: M1 (03, 04) → M2 (05) → M3 (06). 07 is a feature that needs
 
 ## pi-extension-template compliance checklist
 
-Status as of **0.1.18**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
+Status as of **0.1.19**. Baseline: [`pi-extension-template/Docs/pi-extension-oss-rules.md`](https://github.com/eiei114/pi-extension-template).
 
 | Area | Status | Notes |
 |---|---|---|
 | README (minimal-docs policy, badges) | ✅ | Restructured in 0.1.2; the five current badges cover CI, npm version, npm downloads, License, and Pi Package. |
-| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.18. |
+| CHANGELOG (Keep a Changelog) | ✅ | Maintained through 0.1.19. |
 | LICENSE (MIT) | ✅ | Present. |
 | SECURITY.md | ✅ | Added in 0.1.6, linked from README. |
 | `package.json` minimum (`files`, `pi.extensions`, metadata) | ✅ | `files` ships README, ROADMAP, CHANGELOG, LICENSE, SECURITY, `extensions`, `lib`. |
 | CI workflow (`npm run check`) | ✅ | `ci.yml` runs typecheck + test + `npm pack --dry-run`. |
 | `typecheck` script | ✅ | Added in 0.1.6. |
 | npm publish (Trusted Publishing / provenance, no token) | ⏸️ on hold | Publication workflow removed until maintainers establish and verify a trusted, protected authorization boundary. |
-| Release handoff (manual release → publish) | ⏸️ on hold | Release and publish workflows are disabled; merges do not tag, release, publish, or dispatch publication. |
+| Release handoff (manual release → publish) | ✅ | Dispatch-only `auto-release.yml` bound to the protected `release` environment (branch policy: `main` only) with a required `release_authorized` input; merges do not tag, release, publish, or dispatch publication. |
 | GitHub Actions pinned to SHAs | ✅ | The active `ci.yml` pins `actions/checkout` and `actions/setup-node` to commit SHAs (seed 03). |
 | `version:check` CI gate | ✅ | `ci.yml` runs `npm run version:check` on pull requests (seed 04). |
 | Resource-collision / template-generic naming | ✅ | Package and tool names are `pi-fff-non-ascii-guard`-specific. |

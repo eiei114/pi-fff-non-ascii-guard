@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.19] - 2026-10-20
+
+### Added
+
+- Restore the release path with three independent authorization barriers: a
+  dispatch-only trigger, the protected `release` environment restricted to
+  `main`, and a required `release_authorized` input. The environment is the
+  boundary that a branch-editable `github.ref` condition cannot provide.
+
+### Changed
+
+- `tests/release-hold.test.mjs` now enforces this protected shape instead of
+  asserting that the release workflows are absent. Removing any one barrier
+  fails the test.
+
 ## [0.1.18] - 2026-10-16
 
 ### Changed

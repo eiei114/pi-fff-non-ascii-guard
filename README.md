@@ -151,17 +151,30 @@ node scripts/bench-scan.mjs              # compare scan performance on local fix
 
 ## Release
 
-Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Automated
-release and npm publication are currently disabled; the release and publish
-workflows have been removed. Merging does not create tags or GitHub releases,
-publish to npm, or dispatch a publication workflow.
+Planned maintenance work is tracked in [ROADMAP.md](ROADMAP.md). Merging a
+version bump does not create tags or GitHub releases, publish to npm, or
+dispatch a publication workflow. Releases are an explicit authorized action.
 
-Publication remains human-owned and is on hold until repository maintainers
-establish and verify a trusted, protected release authorization boundary. At the
-time this hold was introduced, GitHub reported no branch protection or rulesets
-for `main`, and no Actions environments. This PR does not configure external
-protection or enable publication. Do not restore privileged release workflows
-based only on a `github.ref` condition in branch-editable workflow code.
+Publication requires all of the following, independently:
+
+1. **`workflow_dispatch` only.** `auto-release.yml` has no `push` or `release`
+trigger, so a merge runs CI only.
+2. **The protected `release` environment.** The job declares
+`environment: release`, whose deployment branch policy allows only `main`. The
+environment can additionally require reviewer approval before the job starts.
+3. **`release_authorized: true`.** The dispatch input is required and defaults to
+false.
+
+A `github.ref` condition inside branch-editable workflow code is not a security
+boundary on its own; the environment is what makes the privileged steps
+unreachable from an ordinary branch. `tests/release-hold.test.mjs` enforces this
+shape and fails if any one of the three barriers is removed.
+
+To release:
+
+```bash
+gh workflow run auto-release.yml --ref main -f release_authorized=true
+```
 
 ## Security
 
