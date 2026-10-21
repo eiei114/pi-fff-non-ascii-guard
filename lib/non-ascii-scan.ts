@@ -95,26 +95,18 @@ export function scanNonAsciiPaths(cwd: string): NonAsciiEntry[] {
 
     for (const entry of entries) {
       if (EXCLUDE_DIRS.has(entry.name)) continue;
-      const fullPath = path.join(dir, entry.name);
       const flagged = inNonAsciiSubtree || hasNonAscii(entry.name);
 
-      if (!flagged) {
-        if (entry.isDirectory()) {
-          const childRelativeDir = relativeDir
-            ? `${relativeDir}/${entry.name}`
-            : entry.name;
-          walk(fullPath, childRelativeDir, false);
-        }
-        continue;
-      }
-
-      const relativePath = relativeDir
-        ? `${relativeDir}/${entry.name}`
-        : entry.name;
       if (entry.isDirectory()) {
-        record(relativePath, "directory");
-        walk(fullPath, relativePath, true);
-      } else if (entry.isFile()) {
+        const childRelativeDir = relativeDir
+          ? `${relativeDir}/${entry.name}`
+          : entry.name;
+        if (flagged) record(childRelativeDir, "directory");
+        walk(path.join(dir, entry.name), childRelativeDir, flagged);
+      } else if (flagged && entry.isFile()) {
+        const relativePath = relativeDir
+          ? `${relativeDir}/${entry.name}`
+          : entry.name;
         record(relativePath, "file");
       }
     }
