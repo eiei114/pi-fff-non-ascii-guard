@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.20] - 2026-10-22
+
+### Changed
+
+- Skip absolute-path construction for files that the scan does not report.
+
 ## [0.1.19] - 2026-10-20
 
 ### Added
