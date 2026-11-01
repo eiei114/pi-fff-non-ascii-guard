@@ -25,7 +25,8 @@ test("README sanitize_filenames dry-run example matches the live report", () => 
     writeFileSync(path.join(scripts, "SpreadsheetToJson_wrapなし・nullあり.gs"), "");
 
     const plan = buildRenamePlan(scanNonAsciiPaths(cwd), cwd);
-    assert.equal(exampleMatch[1], formatRenamePlanReport(plan));
+    const documentedReport = exampleMatch[1].replace(/\r\n/g, "\n");
+    assert.equal(documentedReport, formatRenamePlanReport(plan));
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
