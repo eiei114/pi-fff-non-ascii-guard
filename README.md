@@ -103,6 +103,8 @@ No filesystem changes made.
 
 Conflict preview (auto-suffixed -2, -3, ... when needed):
   [slug collision] scripts/spreadsheettojson_wrap-null.gs <- scripts/SpreadsheetToJson_wrapあり・nullなし.gs, scripts/SpreadsheetToJson_wrapなし・nullあり.gs; planned: scripts/spreadsheettojson_wrap-null.gs, scripts/spreadsheettojson_wrap-null-2.gs
+
+Call with dryRun: false to execute.
 ```
 
 If two files would collide after slug conversion, or if the first-choice destination already exists on disk, the conflict preview flags the risk before you run apply mode. The current behavior is to auto-suffix planned destinations (`-2`, `-3`, …) so the batch can proceed without manual renaming. Future collision-policy work may tune those suffix rules; for now, treat the preview as the source of truth and manually rename files first if the proposed suffixes are not what you want.

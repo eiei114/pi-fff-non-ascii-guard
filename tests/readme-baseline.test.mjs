@@ -1,14 +1,36 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { buildRenamePlan, formatRenamePlanReport } from "../lib/rename-plan.ts";
+import { scanNonAsciiPaths } from "../lib/non-ascii-scan.ts";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(root, "..");
 
 const pkg = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
 const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
+
+test("README sanitize_filenames dry-run example matches the live report", () => {
+  const exampleMatch = readme.match(/Dry-run output is a stable report[\s\S]*?```text\r?\n([\s\S]*?)\r?\n```/);
+  assert.ok(exampleMatch, "README missing the sanitize_filenames dry-run example");
+
+  const cwd = mkdtempSync(path.join(tmpdir(), "readme-dry-run-example-"));
+  try {
+    const scripts = path.join(cwd, "scripts");
+    mkdirSync(scripts);
+    writeFileSync(path.join(scripts, "SpreadsheetToJson_wrapあり・nullなし.gs"), "");
+    writeFileSync(path.join(scripts, "SpreadsheetToJson_wrapなし・nullあり.gs"), "");
+
+    const plan = buildRenamePlan(scanNonAsciiPaths(cwd), cwd);
+    const documentedReport = exampleMatch[1].replace(/\r\n/g, "\n");
+    assert.equal(documentedReport, formatRenamePlanReport(plan));
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
 
 test("README package contents lists every npm-packaged markdown doc", () => {
   const treeMatch = readme.match(/^## Package contents\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/m);
