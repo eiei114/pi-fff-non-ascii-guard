@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.22] - 2026-11-03
+
+### Changed
+
+- Upgrade the development/test Pi SDK pins from 1.2.0 to 1.5.0 and verify the
+  extension against the actual Pi 1.5.0 host. Pi 1.5.0 validates tool arguments
+  with `@earendil-works/pi-schema`, but both tool schemas here stay inside
+  JSON Schema, so no code change is required.
+
 ## [0.1.21] - 2026-11-02
 
 ### Changed
