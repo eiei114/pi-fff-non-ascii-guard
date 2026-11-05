@@ -1,35 +1,47 @@
+# One grouped PR per ecosystem per week. Pi SDK packages (@earendil-works/*)
+# move together in their own group so they never arrive as conflicting
+# per-package PRs. Security updates stay ungrouped.
 version: 2
-
-# Keep routine version updates for all ecosystems in one weekly PR.
-# Security updates remain outside this version-update group.
-multi-ecosystem-groups:
-  all-dependencies:
-    schedule:
-      interval: weekly
-      day: tuesday
-      time: "02:00"
-      timezone: Asia/Tokyo
-    labels:
-      - dependencies
-      - dependabot
-      - maintenance
-    commit-message:
-      prefix: chore(deps)
-      include: scope
-
 updates:
-  - package-ecosystem: npm
-    directory: "/"
-    patterns:
+- package-ecosystem: npm
+  directory: /
+  schedule:
+    interval: weekly
+    day: tuesday
+    time: "02:00"
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 2
+  labels:
+  - dependencies
+  - dependabot
+  - maintenance
+  commit-message:
+    prefix: chore
+    include: scope
+  groups:
+    pi-sdk:
+      patterns:
+      - "@earendil-works/*"
+    npm-dependencies:
+      patterns:
       - "*"
-    multi-ecosystem-group: all-dependencies
-    open-pull-requests-limit: 1
-
-  - package-ecosystem: github-actions
-    directory: "/"
-    patterns:
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+    day: tuesday
+    time: "02:00"
+    timezone: Asia/Tokyo
+  open-pull-requests-limit: 2
+  labels:
+  - dependencies
+  - dependabot
+  - maintenance
+  - ci
+  commit-message:
+    prefix: chore
+    include: scope
+  groups:
+    github-actions-dependencies:
+      patterns:
       - "*"
-    multi-ecosystem-group: all-dependencies
-    open-pull-requests-limit: 1
-    labels:
-      - ci
