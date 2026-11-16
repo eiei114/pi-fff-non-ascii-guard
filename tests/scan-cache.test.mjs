@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -17,12 +16,28 @@ const { SCAN_CACHE_TTL_MS } = await import(
 const { formatBlockedToolReason, resetBlockWarningState } = await import(
   pathToFileURL(path.join(libRoot, "block-warning.ts")).href
 );
+const { hasNonAscii } = await import(
+  pathToFileURL(path.join(libRoot, "non-ascii-scan.ts")).href
+);
 
 const NON_ASCII_FILE = "\u65e5\u672c\u8a9e.txt"; // 日本語.txt
 const ASCII_FILE = "japanese.txt";
 
+// `scanNonAsciiPaths` flags the workspace root itself (".") when the cwd path is
+// non-ASCII, so a `mkdtempSync(tmpdir())` fixture would report [".", NON_ASCII_FILE]
+// on machines whose temp directory is non-ASCII. Build the fixtures under an
+// ASCII-only scratch directory inside the repo (`.tmp/` is git-ignored) and fail
+// loudly instead of producing a confusing assertion mismatch if that is not ASCII.
+const scratchRoot = path.join(root, "..", ".tmp", "scan-cache-fixtures");
+
 function createWorkspace(fileName) {
-  const cwd = mkdtempSync(path.join(tmpdir(), "pi-fff-scan-cache-"));
+  if (hasNonAscii(scratchRoot.split(path.sep).join("/"))) {
+    throw new Error(
+      `scan-cache fixtures require an ASCII-only path; ${scratchRoot} contains non-ASCII characters`
+    );
+  }
+  mkdirSync(scratchRoot, { recursive: true });
+  const cwd = mkdtempSync(path.join(scratchRoot, "pi-fff-scan-cache-"));
   writeFileSync(path.join(cwd, fileName), "fixture\n", "utf8");
   return cwd;
 }
@@ -158,6 +173,66 @@ test("a TTL re-scan that changes the path set restores the detailed block reason
     const detailedAgain = formatBlockedToolReason("grep", changed);
     assert.match(detailedAgain, /Blocked grep: 1 non-ASCII path/);
     assert.doesNotMatch(detailedAgain, /still block/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("an empty TTL refresh re-arms the detailed warning for a returning path set", () => {
+  const cwd = createWorkspace(NON_ASCII_FILE);
+  try {
+    const start = 8_000_000;
+    const blocked = getNonAsciiEntries(cwd, start);
+    assert.deepEqual(blocked.map((e) => e.relativePath), [NON_ASCII_FILE]);
+
+    const first = formatBlockedToolReason("grep", blocked);
+    assert.match(first, /Blocked grep: 1 non-ASCII path/);
+    assert.ok(first.includes(NON_ASCII_FILE));
+    assert.match(formatBlockedToolReason("grep", blocked), /still block/);
+
+    // The only blocked path is renamed to ASCII outside the tools.
+    renameSync(path.join(cwd, NON_ASCII_FILE), path.join(cwd, ASCII_FILE));
+    assert.deepEqual(getNonAsciiEntries(cwd, start + SCAN_CACHE_TTL_MS), []);
+
+    // The same path returns after the next TTL: the gate must warn in detail
+    // again instead of collapsing to the compact repeat for a stale path set.
+    writeFileSync(path.join(cwd, NON_ASCII_FILE), "fixture\n", "utf8");
+    const returning = getNonAsciiEntries(cwd, start + 2 * SCAN_CACHE_TTL_MS);
+    assert.deepEqual(returning.map((e) => e.relativePath), [NON_ASCII_FILE]);
+
+    const reason = formatBlockedToolReason("grep", returning);
+    assert.match(reason, /Blocked grep: 1 non-ASCII path/);
+    assert.ok(reason.includes(NON_ASCII_FILE));
+    assert.doesNotMatch(reason, /still block/);
+
+    // Repeats within the unchanged set still collapse to the compact line.
+    assert.match(formatBlockedToolReason("grep", returning), /still block/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("non-empty TTL refreshes keep compact repeats for an unchanged path set", () => {
+  const cwd = createWorkspace(NON_ASCII_FILE);
+  try {
+    const start = 9_000_000;
+    const blocked = getNonAsciiEntries(cwd, start);
+    assert.match(formatBlockedToolReason("grep", blocked), /Blocked grep: 1 non-ASCII path/);
+
+    const refreshed = getNonAsciiEntries(cwd, start + SCAN_CACHE_TTL_MS);
+    assert.deepEqual(refreshed.map((e) => e.relativePath), [NON_ASCII_FILE]);
+    assert.match(formatBlockedToolReason("grep", refreshed), /still block/);
+  } finally {
+    rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test("fixture root is ASCII-only so the scan cannot report the workspace root", () => {
+  const cwd = createWorkspace(NON_ASCII_FILE);
+  try {
+    const entries = getNonAsciiEntries(cwd, 10_000_000);
+    assert.deepEqual(entries.map((e) => e.relativePath), [NON_ASCII_FILE]);
+    assert.equal(entries.length, 1);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }

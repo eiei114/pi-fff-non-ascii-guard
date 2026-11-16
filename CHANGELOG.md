@@ -15,7 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   manual rename, or a non-ASCII file created mid-session, is picked up by the
   fff tool gate without restarting the session or calling `list_non_ascii_paths`
   first. `invalidateNonAsciiCache()` and a `cwd` change still force an
-  immediate re-scan.
+  immediate re-scan. When a refresh finds the workspace clean, the block-warning
+  dedupe state is reset, so a path set that returns later gets the detailed
+  warning again instead of the compact "still block" line; repeats for an
+  unchanged set still stay compact.
 
 ## [0.1.22] - 2026-11-03
 

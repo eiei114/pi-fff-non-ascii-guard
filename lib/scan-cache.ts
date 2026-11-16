@@ -23,6 +23,13 @@ export function getNonAsciiEntries(
     return cached.entries;
   }
   const entries = scanNonAsciiPaths(cwd);
+
+  // A workspace that became clean must forget the previous path set, otherwise a
+  // path set that returns after the next TTL would match the stale dedupe key and
+  // collapse to the compact "still block" line, losing the detailed warning.
+  // Non-empty refreshes keep the dedupe state so repeats stay compact.
+  if (entries.length === 0) resetBlockWarningState();
+
   cached = { cwd, entries, cachedAt: now };
   return entries;
 }
