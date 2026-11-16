@@ -30,7 +30,7 @@ This extension prevents the known crash by keeping scanned filenames ASCII-safe.
 
 ## Features
 
-- **Session-start scan** — automatically detects non-ASCII paths when a Pi session begins
+- **Session-start scan** — automatically detects non-ASCII paths when a Pi session begins; the result is cached for a short window (5 s), so a manual rename is noticed without restarting the session
 - **fff tool gate** — blocks known tools (`grep`, `find_files`, and `fff_multi_grep`) and conservatively guards unknown `fff_*` tools while non-ASCII paths remain (prevents fff-core panic)
 - **Warning notification** — alerts the LLM when problematic paths are found
 - **`list_non_ascii_paths` tool** — list files and directories with non-ASCII path segments
@@ -67,6 +67,8 @@ pi install git:github.com/eiei114/pi-fff-non-ascii-guard
 5. After paths are ASCII-safe, known fff tools and unknown `fff_*` tools work again.
 
 While non-ASCII paths exist, Pi blocks known fff search tools and unknown `fff_*` tools, returning a fix hint instead of crashing. The prefix guard is intentionally conservative so newly added fff tools cannot bypass the protection.
+
+The scan result is cached for 5 seconds, so after a manual directory rename the gate re-scans and unblocks within that window — no session restart needed.
 
 ## Usage summary
 

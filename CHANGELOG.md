@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.23] - 2026-11-16
+
+### Fixed
+
+- The non-ASCII scan cache now expires after `SCAN_CACHE_TTL_MS` (5 s), so a
+  manual rename, or a non-ASCII file created mid-session, is picked up by the
+  fff tool gate without restarting the session or calling `list_non_ascii_paths`
+  first. `invalidateNonAsciiCache()` and a `cwd` change still force an
+  immediate re-scan.
+
 ## [0.1.22] - 2026-11-03
 
 ### Changed

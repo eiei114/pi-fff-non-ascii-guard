@@ -27,6 +27,12 @@ export function formatBlockedFffTools(): string {
   return [...FFF_TOOL_NAMES].sort().join(" / ");
 }
 
+/**
+ * Freshness window for the non-ASCII scan cache. Past this age a gated tool call
+ * re-walks the workspace, so manual renames unblock fff tools without a restart.
+ */
+export const SCAN_CACHE_TTL_MS = 5000;
+
 /** Max path examples in a detailed fff tool block warning. */
 export const MAX_DETAILED_EXAMPLES = 2;
 
