@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.23] - 2026-11-16
+
+### Changed
+
+- Transliterate accented Latin letters in ASCII slugs (NFKD plus combining-mark
+  removal) so `Café résumé.md` becomes `cafe-resume.md` instead of `caf-r-sum.md`,
+  and NFC/NFD spellings of the same name produce the same slug. Pure CJK names
+  still fall back to `non-ascii-file`.
+
 ## [0.1.22] - 2026-11-03
 
 ### Changed

@@ -3,6 +3,8 @@ export function toAsciiSlug(name: string): string {
     .replace(/[\uff01-\uff5e]/g, (c) =>
       String.fromCharCode(c.charCodeAt(0) - 0xfee0)
     )
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
     .replace(/[^\x20-\x7E]+/g, "-")
     .replace(/[-\s]+/g, "-")
     .replace(/^-+|-+$/g, "")
