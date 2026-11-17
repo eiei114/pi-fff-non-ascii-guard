@@ -5,6 +5,11 @@ export function toAsciiSlug(name: string): string {
     )
     .normalize("NFKD")
     .replace(/\p{M}/gu, "")
+    // NFKD can decompose compatibility characters into ASCII characters that
+    // are illegal in Windows filenames (e.g. U+2100 -> "a/c", U+2047 -> "??").
+    // Sanitise them to "-" before the generic non-ASCII pass so a slug can
+    // never turn into a relative path or an invalid filename.
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
     .replace(/[^\x20-\x7E]+/g, "-")
     .replace(/[-\s]+/g, "-")
     .replace(/^-+|-+$/g, "")

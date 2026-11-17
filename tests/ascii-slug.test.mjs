@@ -43,3 +43,29 @@ test("toAsciiSlug keeps the existing full-width ASCII conversion", () => {
 test("toAsciiSlug still falls back when only non-Latin characters remain", () => {
   assert.equal(toAsciiSlug("めも"), "non-ascii-file");
 });
+
+test("toAsciiSlug maps NFKD-derived path separators and wildcards to hyphens", () => {
+  // U+2100 (℀) decomposes to "a/c" and U+2047 (⁇) to "??". Without sanitising
+  // those, a slug becomes a relative path or an invalid Windows filename.
+  assert.equal(toAsciiSlug("a\u2100b"), "aa-cb");
+  assert.equal(toAsciiSlug("a\u2047b"), "a-b");
+});
+
+test("toAsciiSlug never emits Windows-reserved characters from compatibility decompositions", () => {
+  const reserved = /[<>:"/\\|?*\x00-\x1F]/;
+  // Every code point whose NFKD decomposition introduced a reserved character
+  // in the original regression report.
+  const codePoints = [
+    0x2047, 0x2048, 0x2049, 0x2100, 0x2101, 0x2105, 0x2106,
+    0x226e, 0x226f, 0x2a74, 0xfe13, 0xfe16, 0xfe55, 0xfe56,
+    0xfe61, 0xfe64, 0xfe65, 0xfe68,
+  ];
+  for (const cp of codePoints) {
+    const slug = toAsciiSlug(`a${String.fromCodePoint(cp)}b`);
+    assert.equal(
+      reserved.test(slug),
+      false,
+      `U+${cp.toString(16).toUpperCase()} produced a reserved character: ${slug}`
+    );
+  }
+});

@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and NFC/NFD spellings of the same name produce the same slug. Pure CJK names
   still fall back to `non-ascii-file`.
 
+### Fixed
+
+- Sanitise Windows-reserved characters produced by NFKD compatibility
+  decompositions before building the slug. Characters such as U+2100 (℀ →
+  `a/c`) and U+2047 (⁇ → `??`) previously became relative paths or invalid
+  filenames; they now map to `-` and collapse like other unsafe characters.
+
 ## [0.1.22] - 2026-11-03
 
 ### Changed
