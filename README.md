@@ -111,6 +111,8 @@ If two files would collide after slug conversion, or if the first-choice destina
 
 Apply mode returns a list of completed renames and any errors.
 
+Slugs are built by lowercasing the basename, collapsing separator runs into `-`, and dropping non-ASCII characters. Accented Latin letters are transliterated first (`Café résumé.md` → `cafe-resume.md`), and NFC/NFD spellings of the same name produce the same slug. Names that keep no ASCII character (pure Japanese, for example) fall back to `non-ascii-file`.
+
 ## Package contents
 
 The npm package contains the files below; development tooling such as `tests/`,

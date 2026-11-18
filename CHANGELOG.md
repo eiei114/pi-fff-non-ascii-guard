@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.1.23] - 2026-11-16
+
+### Changed
+
+- Transliterate accented Latin letters in ASCII slugs (NFKD plus combining-mark
+  removal) so `Café résumé.md` becomes `cafe-resume.md` instead of `caf-r-sum.md`,
+  and NFC/NFD spellings of the same name produce the same slug. Pure CJK names
+  still fall back to `non-ascii-file`.
+
+### Fixed
+
+- Sanitise Windows-reserved characters produced by NFKD compatibility
+  decompositions before building the slug. Characters such as U+2100 (℀ →
+  `a/c`) and U+2047 (⁇ → `??`) previously became relative paths or invalid
+  filenames; they now map to `-` and collapse like other unsafe characters.
+- Trim trailing periods left by NFKD compatibility decompositions (for example
+  U+2026 `…` → `...`). Extensionless names such as `report…` now slug to
+  `report` instead of `report...`, which Windows shells cannot reference;
+  interior periods used by file extensions are preserved.
+
 ## [0.1.22] - 2026-11-03
 
 ### Changed
