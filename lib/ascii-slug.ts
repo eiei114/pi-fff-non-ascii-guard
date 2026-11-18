@@ -12,7 +12,12 @@ export function toAsciiSlug(name: string): string {
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
     .replace(/[^\x20-\x7E]+/g, "-")
     .replace(/[-\s]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    // NFKD decomposes U+2026 (…) into "...". A slug ending in a period cannot
+    // be referenced from Windows shells, so trim trailing periods together
+    // with hyphens here, before the fallback check and collision handling.
+    // Interior periods are kept so file extensions stay intact.
+    .replace(/^-+/, "")
+    .replace(/[-.]+$/, "")
     .toLowerCase();
   return slug.length > 0 ? slug : "non-ascii-file";
 }

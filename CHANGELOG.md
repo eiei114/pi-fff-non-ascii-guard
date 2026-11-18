@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   decompositions before building the slug. Characters such as U+2100 (℀ →
   `a/c`) and U+2047 (⁇ → `??`) previously became relative paths or invalid
   filenames; they now map to `-` and collapse like other unsafe characters.
+- Trim trailing periods left by NFKD compatibility decompositions (for example
+  U+2026 `…` → `...`). Extensionless names such as `report…` now slug to
+  `report` instead of `report...`, which Windows shells cannot reference;
+  interior periods used by file extensions are preserved.
 
 ## [0.1.22] - 2026-11-03
 

@@ -69,3 +69,14 @@ test("toAsciiSlug never emits Windows-reserved characters from compatibility dec
     );
   }
 });
+
+test("toAsciiSlug strips trailing periods from extensionless slugs but keeps interior periods", () => {
+  // NFKD turns U+2026 (…) into "..." (likewise U+2025 and U+2024). A name
+  // ending in a period is not referenceable from a Windows shell, while the
+  // period inside an extension must survive.
+  assert.equal(toAsciiSlug("report\u2026"), "report");
+  assert.equal(toAsciiSlug("a\u2047b\u2026"), "a-b");
+  assert.equal(toAsciiSlug("foo\u2026 -"), "foo");
+  assert.equal(toAsciiSlug("\u2026"), "non-ascii-file");
+  assert.equal(toAsciiSlug("Caf\u00e9 r\u00e9sum\u00e9.md"), "cafe-resume.md");
+});
