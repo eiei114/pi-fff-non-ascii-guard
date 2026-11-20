@@ -96,3 +96,45 @@ test("dry-run report flags already-existing destinations before apply mode", () 
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test("reserved Windows device targets get a safe numeric suffix and keep extensions", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-device-names-"));
+  try {
+    const reservedNames = [
+      ["cön", "con"],
+      ["prñ", "prn"],
+      ["aüx", "aux"],
+      ["nül", "nul"],
+      ...Array.from({ length: 9 }, (_, i) => [`cöm${i + 1}`, `com${i + 1}`]),
+      ...Array.from({ length: 9 }, (_, i) => [`lpť${i + 1}`, `lpt${i + 1}`]),
+    ];
+    const nearMatches = [
+      ["cöm0", "com0"],
+      ["lpť0", "lpt0"],
+      ["ordinary-namé", "ordinary-name"],
+    ];
+    const entries = [...reservedNames, ...nearMatches].map(([source]) =>
+      fileEntry(`${source}.txt`, ".", source, ".txt")
+    );
+
+    const plan = buildRenamePlan(entries, tmp);
+    const plannedBySource = new Map(plan.renames.map((rename) => [rename.oldPath, rename.newPath]));
+
+    assert.deepEqual(plan.existingDestinations, []);
+    for (const [source, target] of reservedNames) {
+      assert.equal(plannedBySource.get(`${source}.txt`), `${target}-2.txt`);
+    }
+    for (const [source, target] of nearMatches) {
+      assert.equal(plannedBySource.get(`${source}.txt`), `${target}.txt`);
+    }
+
+    const report = formatRenamePlanReport(plan);
+    assert.match(report, /cön\.txt -> con-2\.txt/);
+    assert.match(report, /cöm9\.txt -> com9-2\.txt/);
+    assert.match(report, /lpť9\.txt -> lpt9-2\.txt/);
+    assert.match(report, /cöm0\.txt -> com0\.txt/);
+    assert.match(report, /ordinary-namé\.txt -> ordinary-name\.txt/);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

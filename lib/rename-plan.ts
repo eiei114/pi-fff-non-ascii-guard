@@ -35,8 +35,14 @@ export interface RenamePlan {
 }
 
 function isTargetTaken(relPath: string, used: Set<string>, cwd: string): boolean {
+  if (isWindowsReservedDeviceTarget(relPath)) return true;
   if (used.has(relPath)) return true;
   return fs.existsSync(path.resolve(cwd, relPath));
+}
+
+function isWindowsReservedDeviceTarget(relPath: string): boolean {
+  const basename = path.posix.basename(relPath);
+  return /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i.test(basename);
 }
 
 function disambiguateTarget(
@@ -91,7 +97,11 @@ export function buildRenamePlan(
 
   const collisions = [...baseTargets.entries()].filter(([, v]) => v.length > 1);
   const existingDestinations = [...baseTargets.entries()]
-    .filter(([targetPath]) => fs.existsSync(path.resolve(cwd, targetPath)))
+    .filter(
+      ([targetPath]) =>
+        !isWindowsReservedDeviceTarget(targetPath) &&
+        fs.existsSync(path.resolve(cwd, targetPath))
+    )
     .map(([targetPath, sourcePaths]) => ({ targetPath, sourcePaths }));
   const conflicts: RenamePlanConflict[] = [
     ...collisions.map(([targetPath, sourcePaths]) => ({
