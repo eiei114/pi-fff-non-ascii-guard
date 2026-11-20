@@ -45,6 +45,19 @@ function isWindowsReservedDeviceTarget(relPath: string): boolean {
   return /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i.test(basename);
 }
 
+function addNumericSuffix(targetPath: string, n: number): string {
+  if (isWindowsReservedDeviceTarget(targetPath)) {
+    const basenameStart = targetPath.lastIndexOf("/") + 1;
+    const firstDot = targetPath.indexOf(".", basenameStart);
+    const suffixAt = firstDot === -1 ? targetPath.length : firstDot;
+    return `${targetPath.slice(0, suffixAt)}-${n}${targetPath.slice(suffixAt)}`;
+  }
+
+  const ext = path.extname(targetPath);
+  const stem = ext.length > 0 ? targetPath.slice(0, -ext.length) : targetPath;
+  return `${stem}-${n}${ext}`;
+}
+
 function disambiguateTarget(
   basePath: string,
   used: Set<string>,
@@ -54,10 +67,8 @@ function disambiguateTarget(
     used.add(basePath);
     return basePath;
   }
-  const ext = path.extname(basePath);
-  const stem = ext.length > 0 ? basePath.slice(0, -ext.length) : basePath;
   for (let n = 2; n < 10_000; n++) {
-    const candidate = `${stem}-${n}${ext}`;
+    const candidate = addNumericSuffix(basePath, n);
     if (!isTargetTaken(candidate, used, cwd)) {
       used.add(candidate);
       return candidate;

@@ -9,6 +9,9 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const { buildRenamePlan, formatRenamePlanReport } = await import(
   pathToFileURL(path.join(root, "..", "lib", "rename-plan.ts")).href
 );
+const { scanNonAsciiPaths } = await import(
+  pathToFileURL(path.join(root, "..", "lib", "non-ascii-scan.ts")).href
+);
 
 function fileEntry(relativePath, dir, basename, ext) {
   return { relativePath, kind: "file", dir, basename, ext };
@@ -134,6 +137,26 @@ test("reserved Windows device targets get a safe numeric suffix and keep extensi
     assert.match(report, /lpť9\.txt -> lpt9-2\.txt/);
     assert.match(report, /cöm0\.txt -> com0\.txt/);
     assert.match(report, /ordinary-namé\.txt -> ordinary-name\.txt/);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("reserved Windows device targets with multiple dots suffix before the first dot", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-device-multidot-"));
+  try {
+    fs.writeFileSync(path.join(tmp, "cön.backup.txt"), "source");
+
+    const entries = scanNonAsciiPaths(tmp);
+    const plan = buildRenamePlan(entries, tmp);
+    const report = formatRenamePlanReport(plan);
+
+    assert.equal(plan.renames.length, 1);
+    assert.equal(plan.renames[0].oldPath, "cön.backup.txt");
+    assert.equal(plan.renames[0].newPath, "con-2.backup.txt");
+    assert.match(report, /cön\.backup\.txt -> con-2\.backup\.txt/);
+    assert.deepEqual(fs.readdirSync(tmp), ["cön.backup.txt"]);
+    assert.deepEqual(plan.existingDestinations, []);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
