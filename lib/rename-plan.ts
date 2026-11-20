@@ -35,8 +35,27 @@ export interface RenamePlan {
 }
 
 function isTargetTaken(relPath: string, used: Set<string>, cwd: string): boolean {
+  if (isWindowsReservedDeviceTarget(relPath)) return true;
   if (used.has(relPath)) return true;
   return fs.existsSync(path.resolve(cwd, relPath));
+}
+
+function isWindowsReservedDeviceTarget(relPath: string): boolean {
+  const basename = path.posix.basename(relPath);
+  return /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i.test(basename);
+}
+
+function addNumericSuffix(targetPath: string, n: number): string {
+  if (isWindowsReservedDeviceTarget(targetPath)) {
+    const basenameStart = targetPath.lastIndexOf("/") + 1;
+    const firstDot = targetPath.indexOf(".", basenameStart);
+    const suffixAt = firstDot === -1 ? targetPath.length : firstDot;
+    return `${targetPath.slice(0, suffixAt)}-${n}${targetPath.slice(suffixAt)}`;
+  }
+
+  const ext = path.extname(targetPath);
+  const stem = ext.length > 0 ? targetPath.slice(0, -ext.length) : targetPath;
+  return `${stem}-${n}${ext}`;
 }
 
 function disambiguateTarget(
@@ -48,10 +67,8 @@ function disambiguateTarget(
     used.add(basePath);
     return basePath;
   }
-  const ext = path.extname(basePath);
-  const stem = ext.length > 0 ? basePath.slice(0, -ext.length) : basePath;
   for (let n = 2; n < 10_000; n++) {
-    const candidate = `${stem}-${n}${ext}`;
+    const candidate = addNumericSuffix(basePath, n);
     if (!isTargetTaken(candidate, used, cwd)) {
       used.add(candidate);
       return candidate;
@@ -91,7 +108,11 @@ export function buildRenamePlan(
 
   const collisions = [...baseTargets.entries()].filter(([, v]) => v.length > 1);
   const existingDestinations = [...baseTargets.entries()]
-    .filter(([targetPath]) => fs.existsSync(path.resolve(cwd, targetPath)))
+    .filter(
+      ([targetPath]) =>
+        !isWindowsReservedDeviceTarget(targetPath) &&
+        fs.existsSync(path.resolve(cwd, targetPath))
+    )
     .map(([targetPath, sourcePaths]) => ({ targetPath, sourcePaths }));
   const conflicts: RenamePlanConflict[] = [
     ...collisions.map(([targetPath, sourcePaths]) => ({
