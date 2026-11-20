@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import {
   behaviorAssertions,
   countRuntimeErrors,
-  SDK_VERSIONS,
+  SDK_VERSIONS as SDK_PACKAGE_VERSIONS,
   VERIFICATION_CONTRACT,
 } from "./pi-sdk-smoke-contract.mjs";
 
@@ -21,8 +21,10 @@ const maxCapturedOutputChars = 100_000;
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const manifest = readJson(resolve(root, "package.json"));
 const packageVersions = {};
+const expectedSdkVersion = "1.5.2";
 
-for (const [name, version] of Object.entries(SDK_VERSIONS)) {
+for (const name of Object.keys(SDK_PACKAGE_VERSIONS)) {
+  const version = expectedSdkVersion;
   const installed = readJson(resolve(root, "node_modules", name, "package.json")).version;
   packageVersions[name] = installed;
   if (manifest.devDependencies?.[name] !== version || installed !== version) {
@@ -36,8 +38,8 @@ const piEntry = typeof piManifest.bin === "string" ? piManifest.bin : piManifest
 if (!piEntry) throw new Error("The installed Pi SDK manifest does not declare the pi CLI");
 const piCli = resolve(piPackageDir, piEntry);
 const expectedVersion = piManifest.version;
-if (expectedVersion !== SDK_VERSIONS["@earendil-works/pi-coding-agent"]) {
-  throw new Error(`Expected Pi CLI ${SDK_VERSIONS["@earendil-works/pi-coding-agent"]}, got ${expectedVersion}`);
+if (expectedVersion !== expectedSdkVersion) {
+  throw new Error(`Expected Pi CLI ${expectedSdkVersion}, got ${expectedVersion}`);
 }
 
 function createWorkspace() {
@@ -328,7 +330,7 @@ function createSuccessfulReport(cases) {
     verification_contract: VERIFICATION_CONTRACT,
     sdk_versions: packageVersions,
     platform: process.platform,
-    model_inference: "offline deterministic faux provider; Pi " + SDK_VERSIONS["@earendil-works/pi-coding-agent"] + " host, extension loader, lifecycle and feature paths are real",
+    model_inference: "offline deterministic faux provider; Pi " + expectedSdkVersion + " host, extension loader, lifecycle and feature paths are real",
     unhandled_errors: unhandledErrors,
     extension_load_errors: extensionLoadErrors,
     cases: cases.map(({ runtimeErrors: _runtimeErrors, hostExitCodes: _hostExitCodes,
