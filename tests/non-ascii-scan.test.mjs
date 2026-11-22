@@ -95,6 +95,51 @@ test("scanNonAsciiPaths detects non-ASCII workspace root", () => {
   }
 });
 
+test("scanNonAsciiPaths reports an empty non-ASCII directory", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-empty-"));
+  try {
+    fs.mkdirSync(path.join(tmp, "空フォルダ"));
+    fs.mkdirSync(path.join(tmp, "empty-ascii"));
+
+    const entries = scanNonAsciiPaths(tmp);
+    assert.deepEqual(
+      entries.map((e) => ({ relativePath: e.relativePath, kind: e.kind })),
+      [{ relativePath: "空フォルダ", kind: "directory" }]
+    );
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test("scanNonAsciiPaths reports every non-ASCII segment in a deeply nested tree", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-deep-"));
+  try {
+    const deepest = path.join(tmp, "日本語", "ascii-mid", "データ", "深い", "leaf");
+    fs.mkdirSync(deepest, { recursive: true });
+    fs.mkdirSync(path.join(tmp, "plain", "ascii-only"), { recursive: true });
+
+    const entries = scanNonAsciiPaths(tmp);
+    // Once a non-ASCII segment is entered the whole subtree is flagged
+    // (ASCII-named descendants included); ASCII-only siblings are not.
+    const expected = [
+      "日本語",
+      "日本語/ascii-mid",
+      "日本語/ascii-mid/データ",
+      "日本語/ascii-mid/データ/深い",
+      "日本語/ascii-mid/データ/深い/leaf",
+    ];
+    assert.deepEqual(
+      entries.map((e) => e.relativePath).sort(),
+      [...expected].sort()
+    );
+    for (const e of entries) {
+      assert.equal(e.kind, "directory", `expected directory ${e.relativePath}`);
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test("isRenamableFile ignores ASCII files under non-ASCII directories", () => {
   const entry = {
     relativePath: "日本語/foo.txt",
