@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import registerExtension from "../extensions/pi-fff-non-ascii-guard.ts";
 import { MAX_BLOCK_LIST } from "../lib/constants.ts";
 
 function workspace(t) {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-preview-"));
+  // Pass a relative path to the scanner so host path names aren't part of the fixture.
+  fs.mkdirSync(".tmp", { recursive: true });
+  const cwd = fs.mkdtempSync(path.join(".tmp", "fff-guard-preview-"));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   fs.writeFileSync(path.join(cwd, "メモ.txt"), "original");
   return cwd;
