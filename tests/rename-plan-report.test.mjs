@@ -75,14 +75,13 @@ test("dry-run report flags slug collisions before apply mode", () => {
   }
 });
 
-test("only Windows groups planned targets that differ by extension case", () => {
+function assertWindowsCaseCollision(extensions) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-case-collision-"));
   try {
-    const entries = [
-      fileEntry("メモ.md", ".", "メモ", ".md"),
-      fileEntry("ノート.MD", ".", "ノート", ".MD"),
-      fileEntry("記録.Md", ".", "記録", ".Md"),
-    ];
+    const entries = extensions.map((ext, i) => {
+      const basename = ["メモ", "ノート", "記録"][i];
+      return fileEntry(basename + ext, ".", basename, ext);
+    });
 
     const windows = buildRenamePlan(entries, tmp, "win32");
     const sources = windows.renames.map((r) => r.oldPath);
@@ -103,6 +102,30 @@ test("only Windows groups planned targets that differ by extension case", () => 
     assert.deepEqual(nonWindows.conflicts, []);
     assert.deepEqual(nonWindows.renames.map((r) => r.newPath),
       sources.map((source) => `non-ascii-file${path.extname(source)}`));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+test("only Windows groups planned targets that differ by ASCII extension case", () => {
+  assertWindowsCaseCollision([".md", ".MD", ".Md"]);
+});
+
+test("only Windows groups planned targets with uppercase and lowercase sigma extensions", () => {
+  assertWindowsCaseCollision([".σ", ".Σ"]);
+});
+
+test("Windows comparison does not expand a single extension character", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-case-expansion-"));
+  try {
+    const plan = buildRenamePlan([
+      fileEntry("メモ.İ", ".", "メモ", ".İ"),
+      fileEntry("ノート.i\u0307", ".", "ノート", ".i\u0307"),
+    ], tmp, "win32");
+
+    assert.deepEqual(plan.conflicts, []);
+    assert.deepEqual(new Set(plan.renames.map((r) => r.newPath)),
+      new Set(["non-ascii-file.İ", "non-ascii-file.i\u0307"]));
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

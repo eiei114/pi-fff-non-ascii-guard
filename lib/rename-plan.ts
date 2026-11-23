@@ -77,6 +77,15 @@ function disambiguateTarget(
   throw new Error(`Could not disambiguate target path: ${basePath}`);
 }
 
+function windowsTargetKey(target: string): string {
+  // Fold characters independently: lowercasing a whole path can turn Σ into
+  // final sigma (ς) after a cased stem, missing a collision with σ.
+  return Array.from(target, (char) => {
+    const lower = char.toLowerCase();
+    return lower.length === char.length ? lower : char;
+  }).join("");
+}
+
 export function buildRenamePlan(
   entries: NonAsciiEntry[],
   cwd: string,
@@ -87,7 +96,7 @@ export function buildRenamePlan(
   );
 
   // Fold only the comparison keys; keep the original case for I/O and reports.
-  const targetKey = (target: string) => platform === "win32" ? target.toLowerCase() : target;
+  const targetKey = platform === "win32" ? windowsTargetKey : (target: string) => target;
   const baseTargets = new Map<string, [targetPath: string, sourcePaths: string[]]>();
   const renames: PlannedRename[] = [];
   const usedTargets = new Set<string>();
