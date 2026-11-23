@@ -169,8 +169,16 @@ export default function (pi: ExtensionAPI) {
       const { renames, collisions } = plan;
 
       if (params.dryRun !== false) {
+        let text = formatRenamePlanReport(plan);
+        const dirs = filterNonAsciiDirectories(entries);
+        if (dirs.length > 0) {
+          text +=
+            `\n\nDirectory paths to rename manually (${dirs.length}):\n` +
+            formatEntryList(dirs, MAX_BLOCK_LIST) +
+            "\nApplying this file plan will not clear directory-related blocks.";
+        }
         return {
-          content: [{ type: "text", text: formatRenamePlanReport(plan) }],
+          content: [{ type: "text", text }],
           details: {
             dryRun: true,
             renames,
