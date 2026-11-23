@@ -63,8 +63,9 @@ pi install git:github.com/eiei114/pi-fff-non-ascii-guard
 1. Install the extension (see [Install](#install)).
 2. Start a Pi session in a workspace that may contain non-ASCII filenames.
 3. If non-ASCII filenames are detected, Pi shows a warning with the file list.
-4. Ask the LLM to call `sanitize_filenames` with `dryRun: true` to preview, then `dryRun: false` to execute.
-5. After paths are ASCII-safe, known fff tools and unknown `fff_*` tools work again.
+4. Ask the LLM to call `sanitize_filenames` with `dryRun: true`. Look for **Directory paths to rename manually** below the file plan, or a standalone manual-rename list if there are no renamable files.
+5. If there is a file plan, call `sanitize_filenames` with `dryRun: false` to apply it. This renames files only; non-ASCII directories still block fff and must be renamed to ASCII names manually, even if they are empty.
+6. Call `list_non_ascii_paths` to rescan. When it reports `No non-ASCII paths found. All clear!`, known fff tools and unknown `fff_*` tools can be used again.
 
 While non-ASCII paths exist, Pi blocks known fff search tools and unknown `fff_*` tools, returning a fix hint instead of crashing. The prefix guard is intentionally conservative so newly added fff tools cannot bypass the protection.
 
@@ -74,7 +75,7 @@ The scan result is cached for 5 seconds, so after a manual directory rename the 
 
 ### `list_non_ascii_paths` tool
 
-Lists every file and directory whose relative path contains non-ASCII characters. No parameters.
+Scans for files and directories whose paths contain non-ASCII characters. No parameters. It runs a fresh scan, so use it after applying file renames and manually renaming directories to check for remaining paths. Long results show a count and a truncated list.
 
 ### `sanitize_filenames` tool
 
@@ -86,12 +87,6 @@ Lists every file and directory whose relative path contains non-ASCII characters
 
 ```json
 { "dryRun": true }
-```
-
-**Execute renames:**
-
-```json
-{ "dryRun": false }
 ```
 
 Dry-run output is a stable report of each relative source path and its proposed destination path:
@@ -109,9 +104,25 @@ Conflict preview (auto-suffixed -2, -3, ... when needed):
 Call with dryRun: false to execute.
 ```
 
+If the scan also finds non-ASCII directories, the preview appends a **Directory paths to rename manually** section below the file plan, for example:
+
+```text
+Directory paths to rename manually (1):
+  - 資料 (directory)
+Applying this file plan will not clear directory-related blocks.
+```
+
+If there are no renamable files but directories remain, the tool reports `No renamable non-ASCII files.` and lists directory paths to rename manually instead of showing a file plan.
+
 If two files would collide after slug conversion, or if the first-choice destination already exists on disk, the conflict preview flags the risk before you run apply mode. The current behavior is to auto-suffix planned destinations (`-2`, `-3`, …) so the batch can proceed without manual renaming. Future collision-policy work may tune those suffix rules; for now, treat the preview as the source of truth and manually rename files first if the proposed suffixes are not what you want.
 
-Apply mode returns a list of completed renames and any errors.
+**Execute file renames (if there is a file plan):**
+
+```json
+{ "dryRun": false }
+```
+
+Apply mode reports completed file renames and any errors. Even if all file renames succeed, fff stays blocked while non-ASCII directories remain. In the example, rename `資料` to an ASCII name such as `docs` manually (choose a name that isn't already in use), then call `list_non_ascii_paths` to verify that no non-ASCII paths remain. If only directories were listed in the preview, skip apply and go straight to the manual renames and verification.
 
 Slugs are built by lowercasing the basename, collapsing separator runs into `-`, and dropping non-ASCII characters. Accented Latin letters are transliterated first (`Café résumé.md` → `cafe-resume.md`), and NFC/NFD spellings of the same name produce the same slug. Names that keep no ASCII character (pure Japanese, for example) fall back to `non-ascii-file`.
 
