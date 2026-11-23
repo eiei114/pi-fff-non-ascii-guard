@@ -75,6 +75,39 @@ test("dry-run report flags slug collisions before apply mode", () => {
   }
 });
 
+test("only Windows groups planned targets that differ by extension case", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-case-collision-"));
+  try {
+    const entries = [
+      fileEntry("メモ.md", ".", "メモ", ".md"),
+      fileEntry("ノート.MD", ".", "ノート", ".MD"),
+      fileEntry("記録.Md", ".", "記録", ".Md"),
+    ];
+
+    const windows = buildRenamePlan(entries, tmp, "win32");
+    const sources = windows.renames.map((r) => r.oldPath);
+    const targets = windows.renames.map((r) => r.newPath);
+    const expected = sources.map((source, i) =>
+      `non-ascii-file${i === 0 ? "" : `-${i + 1}`}${path.extname(source)}`
+    );
+    assert.equal(sources.length, entries.length);
+    assert.deepEqual(targets, expected);
+    assert.deepEqual(windows.conflicts, [
+      { type: "slug_collision", targetPath: expected[0], sourcePaths: sources },
+    ]);
+    assert.ok(formatRenamePlanReport(windows).includes(
+      `[slug collision] ${expected[0]} <- ${sources.join(", ")}; planned: ${expected.join(", ")}`
+    ));
+
+    const nonWindows = buildRenamePlan(entries, tmp, "linux");
+    assert.deepEqual(nonWindows.conflicts, []);
+    assert.deepEqual(nonWindows.renames.map((r) => r.newPath),
+      sources.map((source) => `non-ascii-file${path.extname(source)}`));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test("dry-run report flags already-existing destinations before apply mode", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fff-guard-existing-"));
   try {
