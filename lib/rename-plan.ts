@@ -34,9 +34,14 @@ export interface RenamePlan {
   conflicts: RenamePlanConflict[];
 }
 
-function isTargetTaken(relPath: string, used: Set<string>, cwd: string): boolean {
+function isTargetTaken(
+  relPath: string,
+  used: Set<string>,
+  cwd: string,
+  targetKey: (target: string) => string
+): boolean {
   if (isWindowsReservedDeviceTarget(relPath)) return true;
-  if (used.has(relPath)) return true;
+  if (used.has(targetKey(relPath))) return true;
   return fs.existsSync(path.resolve(cwd, relPath));
 }
 
@@ -61,31 +66,38 @@ function addNumericSuffix(targetPath: string, n: number): string {
 function disambiguateTarget(
   basePath: string,
   used: Set<string>,
-  cwd: string
+  cwd: string,
+  targetKey: (target: string) => string
 ): string {
-  if (!isTargetTaken(basePath, used, cwd)) {
-    used.add(basePath);
-    return basePath;
-  }
+  if (!isTargetTaken(basePath, used, cwd, targetKey)) return basePath;
   for (let n = 2; n < 10_000; n++) {
     const candidate = addNumericSuffix(basePath, n);
-    if (!isTargetTaken(candidate, used, cwd)) {
-      used.add(candidate);
-      return candidate;
-    }
+    if (!isTargetTaken(candidate, used, cwd, targetKey)) return candidate;
   }
   throw new Error(`Could not disambiguate target path: ${basePath}`);
 }
 
+function windowsTargetKey(target: string): string {
+  // Fold characters independently: lowercasing a whole path can turn Σ into
+  // final sigma (ς) after a cased stem, missing a collision with σ.
+  return Array.from(target, (char) => {
+    const lower = char.toLowerCase();
+    return lower.length === char.length ? lower : char;
+  }).join("");
+}
+
 export function buildRenamePlan(
   entries: NonAsciiEntry[],
-  cwd: string
+  cwd: string,
+  platform = process.platform
 ): RenamePlan {
   const files = filterNonAsciiFiles(entries).sort((a, b) =>
     a.relativePath.localeCompare(b.relativePath)
   );
 
-  const baseTargets = new Map<string, string[]>();
+  // Fold only the comparison keys; keep the original case for I/O and reports.
+  const targetKey = platform === "win32" ? windowsTargetKey : (target: string) => target;
+  const baseTargets = new Map<string, [targetPath: string, sourcePaths: string[]]>();
   const renames: PlannedRename[] = [];
   const usedTargets = new Set<string>();
 
@@ -93,11 +105,16 @@ export function buildRenamePlan(
     const slug = toAsciiSlug(e.basename);
     const baseName = slug + e.ext;
     const basePath = e.dir === "." ? baseName : e.dir + "/" + baseName;
-    const sources = baseTargets.get(basePath) || [];
-    sources.push(e.relativePath);
-    baseTargets.set(basePath, sources);
+    const key = targetKey(basePath);
+    const group = baseTargets.get(key);
+    if (group) {
+      group[1].push(e.relativePath);
+    } else {
+      baseTargets.set(key, [basePath, [e.relativePath]]);
+    }
 
-    const newPath = disambiguateTarget(basePath, usedTargets, cwd);
+    const newPath = disambiguateTarget(basePath, usedTargets, cwd, targetKey);
+    usedTargets.add(targetKey(newPath));
     renames.push({
       oldPath: e.relativePath,
       newPath,
@@ -106,8 +123,8 @@ export function buildRenamePlan(
     });
   }
 
-  const collisions = [...baseTargets.entries()].filter(([, v]) => v.length > 1);
-  const existingDestinations = [...baseTargets.entries()]
+  const collisions = [...baseTargets.values()].filter(([, sources]) => sources.length > 1);
+  const existingDestinations = [...baseTargets.values()]
     .filter(
       ([targetPath]) =>
         !isWindowsReservedDeviceTarget(targetPath) &&
