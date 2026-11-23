@@ -21,7 +21,7 @@ const maxCapturedOutputChars = 100_000;
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const manifest = readJson(resolve(root, "package.json"));
 const packageVersions = {};
-const expectedSdkVersion = "1.5.2";
+const expectedSdkVersion = "1.6.0";
 
 for (const name of Object.keys(SDK_PACKAGE_VERSIONS)) {
   const version = expectedSdkVersion;
